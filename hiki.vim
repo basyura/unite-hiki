@@ -68,7 +68,18 @@ function! s:update_contents()
   echo res.content
 endfunction
 
-call s:login()
-call s:edit('bash')
+function! s:get_page_list()
+  let res      = http#get(g:hiki_url . '/?c=index')
+  let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  for v in split(ul_inner , '<li>')
+    let link  = matchstr(v , 'a href="\zs.\{-}\ze\">')
+    let title = iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) 
+    echo link . ' ' . title
+  endfor
+endfunction
+
+"call s:login()
+"call s:edit('bash')
+call s:get_page_list()
 
 
