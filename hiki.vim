@@ -12,7 +12,9 @@ function! s:HtmlUnescape(string) " HTMLエスケープを解除
     let string = substitute(string, '&amp;',  '\&', 'g')
     return string
 endfunction
-
+"
+" login
+"
 function! s:login()
   let url  = g:hiki_url . '?c=login'
   let data = {
@@ -21,7 +23,9 @@ function! s:login()
         \ }
   let res = http#post(url , data , {} , 'POST' , {'-c' : g:hiki_cookie})
 endfunction
-
+"
+" edit
+"
 function! s:edit(page)
   let url  = g:hiki_url . '?c=edit;p=' . a:page
   let res  = http#get(url , {} , {} , {'-b' : g:hiki_cookie})
@@ -57,7 +61,9 @@ function! s:edit(page)
     call append(line('$') , iconv(line , 'euc-jp' , &enc))
   endfor
 endfunction
-
+"
+" update_contents
+"
 function! s:update_contents()
   let url  = g:hiki_url . '?c=edit;p=' . b:data.p
   let b:data.save      = 'Save'
@@ -67,19 +73,72 @@ function! s:update_contents()
 
   echo res.content
 endfunction
-
+"
+" get_page_list
+" return [{title , link} , ... ]
+"
 function! s:get_page_list()
   let res      = http#get(g:hiki_url . '/?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  let list = []
   for v in split(ul_inner , '<li>')
-    let link  = matchstr(v , 'a href="\zs.\{-}\ze\">')
-    let title = iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) 
-    echo link . ' ' . title
+    let pare = {
+          \ 'title' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'link'  : matchstr(v , 'a href="\zs.\{-}\ze\">')
+          \ }
+    call add(list , pare)
   endfor
+  return list
+endfunction
+"
+" search
+" return [{title , link , description} , ... ]
+"
+function! s:search(key)
+  let url = g:hiki_url . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let res = http#get(url)
+  let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  let list = []
+  for v in split(ul_inner , '<li>')
+    let pare = {
+          \ 'title' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'link'  : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]') , 'euc-jp' , &enc)
+          \ }
+    call add(list , pare)
+  endfor
+  return list
+endfunction
+"
+" recent
+" return [{title , link , diff_link , user} , ... ]
+"
+function! s:recent()
+  let url = g:hiki_url . '/?c=recent'
+  let res = http#get(url)
+  let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  let list = []
+  for v in split(ul_inner , '<li>')
+    let pare = {
+          \ 'title'     : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
+          \ 'link'      : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'diff_link' : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
+          \ 'user'      : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
+          \ }
+    call add(list , pare)
+  endfor
+  return list
 endfunction
 
 "call s:login()
 "call s:edit('bash')
-call s:get_page_list()
-
+"for pare in s:get_page_list()
+  "echo pare.title . ' ' . pare.link
+"endfor
+"for pare in s:search('ruby')
+  "echo pare.title . ' ' . pare.link . ' ' . pare.description
+"endfor
+"for pare in s:recent()
+  "echo pare.title . ' ' . pare.link . ' ' . pare.user . ' ' . pare.diff_link
+"endfor
 
