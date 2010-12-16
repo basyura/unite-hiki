@@ -1,4 +1,6 @@
-
+" unite-hiki
+" hiki の各ページを RU できる unite plugin
+"
 " from hatena.vim
 function! s:HtmlUnescape(string) " HTMLエスケープを解除
     let string = a:string
@@ -16,19 +18,21 @@ endfunction
 " login
 "
 function! s:login()
-  let url  = g:hiki_url . '?c=login'
-  let data = {
+  let url   = g:hiki_url . '?c=login'
+  let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
         \ }
-  let res = http#post(url , data , {} , 'POST' , {'-c' : g:hiki_cookie})
+  let res = unite#hiki#http#post(url , {'param' : param , 'cookie' : 'd:/cookie' , 'location' : 0})
+  "echo res.content
 endfunction
 "
 " edit
 "
 function! s:edit(page)
   let url  = g:hiki_url . '?c=edit;p=' . a:page
-  let res  = http#get(url , {} , {} , {'-b' : g:hiki_cookie})
+  let res  = unite#hiki#http#get(url , {'cookie' : g:hiki_cookie})
+  "echo res.content
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
   let md5hex     = matchstr(res.content , 'name="md5hex"\s*value="\zs[^"]*\ze"')
@@ -69,16 +73,15 @@ function! s:update_contents()
   let b:data.save      = 'Save'
   let b:data.contents  = iconv(join(getline(1 , '$') , "\n") , 
                                   \ &enc , 'euc-jp')
-  let res = http#post(url , b:data , {} , 'POST' , {'-b' : g:hiki_cookie})
+  let res = unite#hiki#http#post(url , {'param' : b:data , 'cookie' : g:hiki_cookie , 'location' : 0})
 
-  echo res.content
 endfunction
 "
 " get_page_list
 " return [{title , link} , ... ]
 "
 function! s:get_page_list()
-  let res      = http#get(g:hiki_url . '/?c=index')
+  let res      = unite#hiki#http#get(g:hiki_url . '/?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -95,8 +98,8 @@ endfunction
 " return [{title , link , description} , ... ]
 "
 function! s:search(key)
-  let url = g:hiki_url . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
-  let res = http#get(url)
+  let url = g:hiki_url . '/?c=search&key=' . unite#hiki#http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let res = unite#hiki#http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -115,7 +118,7 @@ endfunction
 "
 function! s:recent()
   let url = g:hiki_url . '/?c=recent'
-  let res = http#get(url)
+  let res = unite#hiki#http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -130,8 +133,8 @@ function! s:recent()
   return list
 endfunction
 
-"call s:login()
-"call s:edit('bash')
+call s:login()
+call s:edit('bash')
 "for pare in s:get_page_list()
   "echo pare.title . ' ' . pare.link
 "endfor
@@ -142,3 +145,10 @@ endfunction
   "echo pare.title . ' ' . pare.link . ' ' . pare.user . ' ' . pare.diff_link
 "endfor
 
+"let url  = g:hiki_url . '?c=login'
+"let param = {
+      "\ 'name' : g:hiki_user , 'password' : g:hiki_password , 
+      "\ 'c' : 'login' , 'p' : ''
+      "\ }
+"let res = unite#hiki#http#post(url , {'param' : param , 'cookie' : 'd:/cookie' , 'location' : 0})
+"echo iconv(res.content , 'euc-jp' , &enc)
