@@ -80,7 +80,7 @@ endfunction
 " get_page_list
 "
 function! s:get_page_list()
-  let res      = unite#hiki#http#get(g:hiki_url . '/?c=index')
+  let res      = http#get(g:hiki_url . '/?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -103,10 +103,10 @@ function! s:HtmlUnescape(string) " HTMLエスケープを解除
         let num = matchstr(string, '&#\zs\d\+\ze;')
         let string = substitute(string, '&#\d\+;', nr2char(num), '')
     endwhile
-    let string = substitute(string, '&gt;',   '>', 'g')
-    let string = substitute(string, '&lt;',   '<', 'g')
-    let string = substitute(string, '&quot;', '"', 'g')
-    let string = substitute(string, '&amp;',  '\&', 'g')
+    let string = substitute(string, '&gt;'   , '>'  , 'g')
+    let string = substitute(string, '&lt;'   , '<'  , 'g')
+    let string = substitute(string, '&quot;' , '"'  , 'g')
+    let string = substitute(string, '&amp;'  , '\&' , 'g')
     return string
 endfunction
 "
@@ -118,7 +118,8 @@ function! s:login()
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
         \ }
-  let res = unite#hiki#http#post(url , {'param' : param , 'cookie' : 'd:/cookie' , 'location' : 0})
+  let res = unite#hiki#http#post(url , 
+              \ {'param' : param , 'cookie' : 'd:/cookie' , 'location' : 0})
 endfunction
 "
 " load page
@@ -188,7 +189,8 @@ function! s:update_contents()
   let b:data.save      = 'Save'
   let b:data.contents  = iconv(join(getline(1 , '$') , "\n") , 
                                   \ &enc , 'euc-jp') . "\n"
-  let res = unite#hiki#http#post(url , {'param' : b:data , 'cookie' : g:hiki_cookie , 'location' : 0})
+  let res = unite#hiki#http#post(url , 
+              \ {'param' : b:data , 'cookie' : g:hiki_cookie , 'location' : 0})
 
   echo 'OK'
 
@@ -200,8 +202,8 @@ endfunction
 " return [{title , link , description} , ... ]
 "
 function! s:search(key)
-  let url = g:hiki_url . '/?c=search&key=' . unite#hiki#http#escape(iconv(a:key , &enc , 'euc-jp'))
-  let res = unite#hiki#http#get(url)
+  let url = g:hiki_url . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let res = http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
