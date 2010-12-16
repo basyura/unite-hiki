@@ -53,12 +53,18 @@ function! s:unite_source.gather_candidates(args, context)
     return s:candidates_cache
   endif
   " cache issues
-  call s:login()
   call unite#yarm#info('now caching issues ...')
+  
+  if len(a:args) == 1
+    let list = s:search(a:args[0])
+  else
+    let list = s:get_page_list()
+  endif
+
   let s:candidates_cache = 
-        \ map(s:get_page_list() , '{
-        \ "word"          : v:val.unite_word,
-        \ "source"        : "hiki",
+        \ map(list , '{
+        \ "word"         : v:val.unite_word,
+        \ "source"       : "hiki",
         \ "source__hiki" : v:val,
         \ }')
   return s:candidates_cache
@@ -113,18 +119,22 @@ endfunction
 " login
 "
 function! s:login()
+  call delete(g:hiki_cookie)
   let url   = g:hiki_url . '?c=login'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
         \ }
   let res = unite#hiki#http#post(url , 
-              \ {'param' : param , 'cookie' : 'd:/cookie' , 'location' : 0})
+              \ {'param' : param , 'cookie' : g:hiki_cookie , 'location' : 0})
 endfunction
 "
 " load page
 "
 function! s:load_page(source, ... )
+  " cookie を消してログインしなおさないと中身が取れないよ
+  call s:login()
+
   let param   = a:0 > 0 ? a:000[0] : {'force' : 0}
 
   let bufname = 'hiki ' . a:source.unite_word
@@ -189,6 +199,7 @@ function! s:update_contents()
   let b:data.save      = 'Save'
   let b:data.contents  = iconv(join(getline(1 , '$') , "\n") , 
                                   \ &enc , 'euc-jp') . "\n"
+
   let res = unite#hiki#http#post(url , 
               \ {'param' : b:data , 'cookie' : g:hiki_cookie , 'location' : 0})
 
@@ -208,11 +219,13 @@ function! s:search(key)
   let list = []
   for v in split(ul_inner , '<li>')
     let pare = {
-          \ 'title' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
-          \ 'link'  : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'unite_word'  : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'link'        : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
           \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]') , 'euc-jp' , &enc)
           \ }
-    call add(list , pare)
+    if pare.unite_word != ""
+      call add(list , pare)
+    endif
   endfor
   return list
 endfunction
