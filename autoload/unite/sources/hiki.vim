@@ -64,6 +64,7 @@ function! s:unite_source.gather_candidates(args, context)
   let s:candidates_cache = 
         \ map(list , '{
         \ "word"         : v:val.unite_word,
+        \ "abbr"         : v:val.unite_abbr,
         \ "source"       : "hiki",
         \ "source__hiki" : v:val,
         \ }')
@@ -92,6 +93,7 @@ function! s:get_page_list()
   for v in split(ul_inner , '<li>')
     let pare = {
           \ 'unite_word' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'unite_abbr' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'link'       : matchstr(v , 'a href="\zs.\{-}\ze\">')
           \ }
     if pare.unite_word != ""
@@ -224,6 +226,7 @@ function! s:search(key)
           \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]') , 'euc-jp' , &enc)
           \ }
     if pare.unite_word != ""
+      let pare.unite_abbr = pare.unite_word . ' ' . pare.description
       call add(list , pare)
     endif
   endfor
