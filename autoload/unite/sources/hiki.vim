@@ -1,6 +1,6 @@
 " hiki source for unite.vim
 " Version:     0.0.1
-" Last Modified: 16 Dec 2010
+" Last Modified: 19 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -139,7 +139,7 @@ function! s:load_page(source, ... )
 
   let param   = a:0 > 0 ? a:000[0] : {'force' : 0}
 
-  let bufname = 'hiki ' . a:source.unite_word
+  let bufname = 'hiki_' . a:source.unite_word
   let bufno   = bufnr(bufname . "$")
   " 強制上書きまたは隠れバッファ(ls!で表示されるもの)の場合
   " 一度消してから開きなおし
