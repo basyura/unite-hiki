@@ -123,7 +123,7 @@ function! unite#hiki#http#get(url, ... )
   let getdata  = get(param , 'param' , {})
   let headdata = get(param , 'head'  , {})
   let command  = 'curl -s -k -i'
-  if get(param , 'location' , 1) 
+  if get(param , 'location' , 0)
     let command .= ' -L'
   endif
   let cookie = get(param , 'cookie'  , '')
@@ -185,7 +185,7 @@ function! unite#hiki#http#post(url, ...)
   let headdata = get(param , 'head'   , {})
   let method   = get(param , 'method' , 'POST')
   let command  = 'curl'
-  if get(param , 'location' , 1) 
+  if get(param , 'location' , 0)
     let command .= ' -L'
   endif
   let command .= ' -s -k -i -X '.method

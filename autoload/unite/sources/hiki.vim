@@ -128,7 +128,7 @@ function! s:login()
         \ 'c' : 'login' , 'p' : ''
         \ }
   let res = unite#hiki#http#post(url , 
-              \ {'param' : param , 'cookie' : g:hiki_cookie , 'location' : 0})
+              \ {'param' : param , 'cookie' : g:hiki_cookie})
 endfunction
 "
 " load page
@@ -139,7 +139,7 @@ function! s:load_page(source, ... )
 
   let param   = a:0 > 0 ? a:000[0] : {'force' : 0}
 
-  let bufname = 'hiki_' . a:source.unite_word
+  let bufname = 'hiki ' . a:source.unite_word
   let bufno   = bufnr(bufname . "$")
   " 強制上書きまたは隠れバッファ(ls!で表示されるもの)の場合
   " 一度消してから開きなおし
@@ -159,7 +159,7 @@ function! s:load_page(source, ... )
   let contents   = s:HtmlUnescape(matchstr(res.content, '<textarea.\{-}name="contents"[^>]*>\zs.\{-}\ze</textarea>'))
   let keyword    = s:HtmlUnescape(matchstr(res.content, '<textarea.\{-}name="keyword"[^>]*>\zs.\{-}\ze</textarea>'))
 
-  exec 'edit! ' . bufname
+  exec 'edit! ' . substitute(bufname , ' ' , '\\ ' , 'g')
   silent %delete _
   setlocal bufhidden=hide
   setlocal noswapfile
@@ -170,7 +170,7 @@ function! s:load_page(source, ... )
   let b:autocmd_update = 1
 "  setfiletype hiki
   let b:data = {
-        \ 'p'          : p , 
+        \ 'p'          : p ,
         \ 'c'          : c , 
         \ 'md5hex'     : md5hex , 
         \ 'session_id' : session_id , 
@@ -197,13 +197,14 @@ function! s:update_contents()
   endif
   echohl None
 
-  let url  = g:hiki_url . '?c=edit;p=' . b:data.p
-  let b:data.save      = 'Save'
+  let b:data.save      = 'save'
+  let b:data.c         = b:data.c
+  let b:data.p         = b:data.p
   let b:data.contents  = iconv(join(getline(1 , '$') , "\n") , 
                                   \ &enc , 'euc-jp') . "\n"
 
-  let res = unite#hiki#http#post(url , 
-              \ {'param' : b:data , 'cookie' : g:hiki_cookie , 'location' : 0})
+  let res = unite#hiki#http#post(g:hiki_url ,
+              \ {'param' : b:data , 'cookie' : g:hiki_cookie})
 
   echo 'OK'
 
