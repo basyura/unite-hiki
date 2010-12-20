@@ -1,6 +1,6 @@
 " hiki source for unite.vim
 " Version:     0.0.1
-" Last Modified: 19 Dec 2010
+" Last Modified: 20 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -163,7 +163,7 @@ function! s:load_page(source, ... )
   silent %delete _
   setlocal bufhidden=hide
   setlocal noswapfile
-  setlocal fileformat=unix
+  setlocal filetype=hiki
   if !exists('b:autocmd_update')
     autocmd BufWriteCmd <buffer> call <SID>update_contents()
   endif
