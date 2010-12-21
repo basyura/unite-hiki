@@ -191,7 +191,7 @@ function! unite#hiki#http#post(url, ...)
   let command .= ' -s -k -i -X '.method
   let cookie = get(param , 'cookie'  , '')
   if cookie != '' 
-    let command .= filereadable(cookie) ? ' -b ' . cookie : ' -c' . cookie
+    let command .= filereadable(cookie) ? ' -b ' . cookie : ' -c ' . cookie
   endif
 
 
