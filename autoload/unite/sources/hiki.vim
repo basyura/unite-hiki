@@ -258,7 +258,9 @@ function! s:recent()
   endfor
   return list
 endfunction
-
+"
+" get_server_url
+"
 function! s:get_server_url()
   if g:hiki_url =~ "/$"
     return g:hiki_url
