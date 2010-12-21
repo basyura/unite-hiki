@@ -87,7 +87,7 @@ endfunction
 " get_page_list
 "
 function! s:get_page_list()
-  let res      = http#get(g:hiki_url . '/?c=index')
+  let res      = http#get(s:get_server_url() . '/?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -122,7 +122,7 @@ endfunction
 "
 function! s:login()
   call delete(g:hiki_cookie)
-  let url   = g:hiki_url . '?c=login'
+  let url   = s:get_server_url() . '?c=login'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
@@ -149,7 +149,7 @@ function! s:load_page(source, ... )
     return
   endif
 
-  let url  = g:hiki_url . '?c=edit;p=' . http#escape(a:source.unite_word)
+  let url  = s:get_server_url() . '?c=edit;p=' . http#escape(a:source.unite_word)
   let res  = unite#hiki#http#get(url , {'cookie' : g:hiki_cookie})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
@@ -203,10 +203,11 @@ function! s:update_contents()
   let b:data.contents  = iconv(join(getline(1 , '$') , "\n") , 
                                   \ &enc , 'euc-jp') . "\n"
 
-  let res = unite#hiki#http#post(g:hiki_url ,
+  let res = unite#hiki#http#post(s:get_server_url() ,
               \ {'param' : b:data , 'cookie' : g:hiki_cookie})
 
-  if split(res.header[0])[1] == '200'
+  let status = split(res.header[0])[1]
+  if status == '200' || status == '100'
     echo 'OK'
   else
     echoerr res.header[0]
@@ -220,7 +221,7 @@ endfunction
 " return [{title , link , description} , ... ]
 "
 function! s:search(key)
-  let url = g:hiki_url . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let url = s:get_server_url() . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
   let res = http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
@@ -242,7 +243,7 @@ endfunction
 " return [{title , link , diff_link , user} , ... ]
 "
 function! s:recent()
-  let url = g:hiki_url . '/?c=recent'
+  let url = s:get_server_url() . '/?c=recent'
   let res = unite#hiki#http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
@@ -256,6 +257,14 @@ function! s:recent()
     call add(list , pare)
   endfor
   return list
+endfunction
+
+function! s:get_server_url()
+  if g:hiki_url =~ "/$"
+    return g:hiki_url
+  else
+    return g:hiki_url . '/'
+  endif
 endfunction
 
 "call s:login()
