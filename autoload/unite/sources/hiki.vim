@@ -1,6 +1,6 @@
 " hiki source for unite.vim
 " Version:     0.0.1
-" Last Modified: 20 Dec 2010
+" Last Modified: 21 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -206,7 +206,11 @@ function! s:update_contents()
   let res = unite#hiki#http#post(g:hiki_url ,
               \ {'param' : b:data , 'cookie' : g:hiki_cookie})
 
-  echo 'OK'
+  if split(res.header[0])[1] == '200'
+    echo 'OK'
+  else
+    echoerr res.header[0]
+  endif
 
   call s:load_page(b:unite_hiki_source , {'force' : 1})
 
