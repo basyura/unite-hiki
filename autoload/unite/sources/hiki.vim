@@ -267,22 +267,3 @@ function! s:get_server_url()
   endif
 endfunction
 
-"call s:login()
-"call s:edit('bash')
-"for pare in s:get_page_list()
-  "echo pare.title . ' ' . pare.link
-"endfor
-"for pare in s:search('ruby')
-  "echo pare.title . ' ' . pare.link . ' ' . pare.description
-"endfor
-"for pare in s:recent()
-  "echo pare.title . ' ' . pare.link . ' ' . pare.user . ' ' . pare.diff_link
-"endfor
-
-"let url  = g:hiki_url . '?c=login'
-"let param = {
-      "\ 'name' : g:hiki_user , 'password' : g:hiki_password , 
-      "\ 'c' : 'login' , 'p' : ''
-      "\ }
-"let res = unite#hiki#http#post(url , {'param' : param , 'cookie' : 'd:/cookie' , 'location' : 0})
-"echo iconv(res.content , 'euc-jp' , &enc)
