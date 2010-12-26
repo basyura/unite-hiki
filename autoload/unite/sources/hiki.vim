@@ -1,6 +1,6 @@
 " hiki source for unite.vim
 " Version:     0.0.1
-" Last Modified: 21 Dec 2010
+" Last Modified: 26 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -49,9 +49,11 @@ function! s:unite_source.gather_candidates(args, context)
     "let s:candidates_cache = []
   "endif
   " return cache if exist
-  if !empty(s:candidates_cache)
-    return s:candidates_cache
-  endif
+ 
+  
+  "if !empty(s:candidates_cache)
+    "return s:candidates_cache
+  "endif
   " cache issues
   call unite#yarm#info('now caching issues ...')
   
@@ -87,7 +89,7 @@ endfunction
 " get_page_list
 "
 function! s:get_page_list()
-  let res      = http#get(s:get_server_url() . '/?c=index')
+  let res      = unite#hiki#http#get(s:get_server_url() . '?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -122,7 +124,7 @@ endfunction
 "
 function! s:login()
   call delete(g:hiki_cookie)
-  let url   = s:get_server_url() . '?c=login'
+  let url   = s:get_server_url() . '?c=login;p=FrontPage'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
@@ -197,6 +199,8 @@ function! s:update_contents()
   endif
   echohl None
 
+"  call s:login()
+
   let b:data.save      = 'save'
   let b:data.c         = b:data.c
   let b:data.p         = b:data.p
@@ -209,11 +213,11 @@ function! s:update_contents()
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
     echo 'OK'
+    call s:load_page(b:unite_hiki_source , {'force' : 1})
   else
     echoerr res.header[0]
   endif
 
-  call s:load_page(b:unite_hiki_source , {'force' : 1})
 
 endfunction
 "
@@ -221,7 +225,7 @@ endfunction
 " return [{title , link , description} , ... ]
 "
 function! s:search(key)
-  let url = s:get_server_url() . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let url = s:get_server_url() . '?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
   let res = http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
@@ -243,7 +247,7 @@ endfunction
 " return [{title , link , diff_link , user} , ... ]
 "
 function! s:recent()
-  let url = s:get_server_url() . '/?c=recent'
+  let url = s:get_server_url() . '?c=recent'
   let res = unite#hiki#http#get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
