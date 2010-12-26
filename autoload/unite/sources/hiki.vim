@@ -1,6 +1,5 @@
-" hiki source for unite.vim
 " Version:     0.0.1
-" Last Modified: 26 Dec 2010
+" Last Modified: 27 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -199,12 +198,13 @@ function! s:update_contents()
   endif
   echohl None
 
-"  call s:login()
+  call s:login()
 
-  let b:data.save      = 'save'
-  let b:data.c         = b:data.c
-  let b:data.p         = b:data.p
-  let b:data.contents  = iconv(join(getline(1 , '$') , "\n") , 
+  let b:data.save       = 'save'
+  let b:data.c          = b:data.c
+  let b:data.p          = b:data.p
+  let b:data.session_id = split(readfile(g:hiki_cookie)[4])[6]
+  let b:data.contents   = iconv(join(getline(1 , '$') , "\n") , 
                                   \ &enc , 'euc-jp') . "\n"
 
   let res = unite#hiki#http#post(s:get_server_url() ,
