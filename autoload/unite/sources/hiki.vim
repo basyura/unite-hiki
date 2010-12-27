@@ -45,14 +45,13 @@ function! s:unite_source.gather_candidates(args, context)
   "let option = unite#yarm#parse_args(a:args)
   " clear cache. option に判定メソッドを持たせたい
   "if len(option) != 0
-    "let s:candidates_cache = []
+  "  let s:candidates_cache = []
   "endif
+
   " return cache if exist
- 
-  
-  "if !empty(s:candidates_cache)
-    "return s:candidates_cache
-  "endif
+  if !empty(s:candidates_cache)
+    return s:candidates_cache
+  endif
   " cache issues
   call unite#yarm#info('now caching issues ...')
   
@@ -122,12 +121,13 @@ endfunction
 " login
 "
 function! s:login()
+  call delete(g:hiki_cookie)
   let url   = s:get_server_url() . '?c=login;p=FrontPage'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
         \ }
-  let res = s:post(url , {'param' : param , 'cookie' : g:hiki_cookie})
+  let res = s:post(url , param)
 endfunction
 "
 " load page
@@ -202,9 +202,8 @@ function! s:update_contents()
   let b:data.p          = b:data.p
   let b:data.session_id = s:get_session_id()
   let b:data.contents   = s:get_contents()
-
-  let res = s:post(s:get_server_url() , {'param' : b:data , 'cookie' : g:hiki_cookie})
-
+  " http1.1 だと 100 で変えることがあるので http1.0 でポストする
+  let res = s:post(s:get_server_url() , b:data)
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
     echo 'OK'
@@ -212,7 +211,6 @@ function! s:update_contents()
   else
     echoerr res.header[0]
   endif
-
 
 endfunction
 "
@@ -280,8 +278,13 @@ endfunction
 "
 " post
 "
-function! s:post(url, param)
-  return unite#hiki#http#post(a:url , a:param)
+function! s:post(url, data)
+  let params = {
+        \ 'param'  : a:data ,
+        \ 'cookie' : g:hiki_cookie ,
+        \ 'http10' : 1
+        \ }
+  return unite#hiki#http#post(a:url , params)
 endfunction
 "
 " get session id

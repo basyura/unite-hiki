@@ -188,6 +188,9 @@ function! unite#hiki#http#post(url, ...)
   if get(param , 'location' , 0)
     let command .= ' -L'
   endif
+  if get(param , 'http10' , 0)
+    let command .= ' -0'
+  endif
   let command .= ' -s -k -i -X '.method
   let cookie = get(param , 'cookie'  , '')
   if cookie != '' 
