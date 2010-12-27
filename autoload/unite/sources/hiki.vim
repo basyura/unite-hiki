@@ -87,7 +87,7 @@ endfunction
 " get_page_list
 "
 function! s:get_page_list()
-  let res      = s:get(s:get_server_url() . '?c=index')
+  let res      = s:get(s:server_url() . '/?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -122,7 +122,7 @@ endfunction
 "
 function! s:login()
   call delete(g:hiki_cookie)
-  let url   = s:get_server_url() . '?c=login;p=FrontPage'
+  let url   = s:server_url() . '/?c=login;p=FrontPage'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
@@ -148,7 +148,7 @@ function! s:load_page(source, ... )
     return
   endif
 
-  let url  = s:get_server_url() . '?c=edit;p=' . http#escape(a:source.unite_word)
+  let url  = s:server_url() . '/?c=edit;p=' . http#escape(a:source.unite_word)
   let res  = s:get(url , {'cookie' : g:hiki_cookie})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
@@ -203,7 +203,7 @@ function! s:update_contents()
   let b:data.session_id = s:get_session_id()
   let b:data.contents   = s:get_contents()
   " http1.1 だと 100 で変えることがあるので http1.0 でポストする
-  let res = s:post(s:get_server_url() , b:data)
+  let res = s:post(s:server_url() . '/' , b:data)
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
     echo 'OK'
@@ -218,7 +218,7 @@ endfunction
 " return [{title , link , description} , ... ]
 "
 function! s:search(key)
-  let url = s:get_server_url() . '?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let url = s:server_url() . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
   let res = s:get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
@@ -240,7 +240,7 @@ endfunction
 " return [{title , link , diff_link , user} , ... ]
 "
 function! s:recent()
-  let url = s:get_server_url() . '?c=recent'
+  let url = s:server_url() . '/?c=recent'
   let res = s:get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
@@ -259,14 +259,10 @@ endfunction
 " - private functions -
 "
 "
-" get_server_url
+" server_url
 "
-function! s:get_server_url()
-  if g:hiki_url =~ "/$"
-    return g:hiki_url
-  else
-    return g:hiki_url . '/'
-  endif
+function! s:server_url()
+  return substitute(g:hiki_url , '/$' , '' , '')
 endfunction
 "
 " get
