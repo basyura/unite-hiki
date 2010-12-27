@@ -133,10 +133,18 @@ endfunction
 " load page
 "
 function! s:load_page(source, ... )
-  " cookie を消してログインしなおさないと中身が取れないよ
-  call s:login()
+  let param   = a:0 > 0 ? a:000[0] : {}
+  if !has_key(param , 'force')
+    let param.force   = 0
+  endif
+  if !has_key(param , 'logined')
+    let param.logined = 0
+  endif
 
-  let param   = a:0 > 0 ? a:000[0] : {'force' : 0}
+  if !param.logined
+   " cookie を消してログインしなおさないと中身が取れないよ
+   call s:login()
+  endif
 
   let bufname = 'hiki ' . a:source.unite_word
   let bufno   = bufnr(bufname . "$")
@@ -163,9 +171,12 @@ function! s:load_page(source, ... )
   setlocal bufhidden=hide
   setlocal noswapfile
   setlocal filetype=hiki
-  if !exists('b:autocmd_update')
+  " autocmd
+  augroup unite-hiki-load-page
+    autocmd!
     autocmd BufWriteCmd <buffer> call <SID>update_contents()
-  endif
+  augroup END
+
   let b:autocmd_update = 1
   let b:data = {
         \ 'p'          : p ,
@@ -207,7 +218,7 @@ function! s:update_contents()
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
     echo 'OK'
-    call s:load_page(b:unite_hiki_source , {'force' : 1})
+    call s:load_page(b:unite_hiki_source , {'force' : 1 , 'logined' : 1})
   else
     echoerr res.header[0]
   endif
