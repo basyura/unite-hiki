@@ -88,7 +88,7 @@ endfunction
 " get_page_list
 "
 function! s:get_page_list()
-  let res      = unite#hiki#http#get(s:get_server_url() . '?c=index')
+  let res      = s:get(s:get_server_url() . '?c=index')
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -122,14 +122,12 @@ endfunction
 " login
 "
 function! s:login()
-  call delete(g:hiki_cookie)
   let url   = s:get_server_url() . '?c=login;p=FrontPage'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
         \ 'c' : 'login' , 'p' : ''
         \ }
-  let res = unite#hiki#http#post(url , 
-              \ {'param' : param , 'cookie' : g:hiki_cookie})
+  let res = s:post(url , {'param' : param , 'cookie' : g:hiki_cookie})
 endfunction
 "
 " load page
@@ -151,7 +149,7 @@ function! s:load_page(source, ... )
   endif
 
   let url  = s:get_server_url() . '?c=edit;p=' . http#escape(a:source.unite_word)
-  let res  = unite#hiki#http#get(url , {'cookie' : g:hiki_cookie})
+  let res  = s:get(url , {'cookie' : g:hiki_cookie})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
   let md5hex     = matchstr(res.content , 'name="md5hex"\s*value="\zs[^"]*\ze"')
@@ -169,7 +167,6 @@ function! s:load_page(source, ... )
     autocmd BufWriteCmd <buffer> call <SID>update_contents()
   endif
   let b:autocmd_update = 1
-"  setfiletype hiki
   let b:data = {
         \ 'p'          : p ,
         \ 'c'          : c , 
@@ -203,12 +200,10 @@ function! s:update_contents()
   let b:data.save       = 'save'
   let b:data.c          = b:data.c
   let b:data.p          = b:data.p
-  let b:data.session_id = split(readfile(g:hiki_cookie)[4])[6]
-  let b:data.contents   = iconv(join(getline(1 , '$') , "\n") , 
-                                  \ &enc , 'euc-jp') . "\n"
+  let b:data.session_id = s:get_session_id()
+  let b:data.contents   = s:get_contents()
 
-  let res = unite#hiki#http#post(s:get_server_url() ,
-              \ {'param' : b:data , 'cookie' : g:hiki_cookie})
+  let res = s:post(s:get_server_url() , {'param' : b:data , 'cookie' : g:hiki_cookie})
 
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
@@ -226,7 +221,7 @@ endfunction
 "
 function! s:search(key)
   let url = s:get_server_url() . '?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
-  let res = http#get(url)
+  let res = s:get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -248,7 +243,7 @@ endfunction
 "
 function! s:recent()
   let url = s:get_server_url() . '?c=recent'
-  let res = unite#hiki#http#get(url)
+  let res = s:get(url)
   let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list = []
   for v in split(ul_inner , '<li>')
@@ -263,6 +258,9 @@ function! s:recent()
   return list
 endfunction
 "
+" - private functions -
+"
+"
 " get_server_url
 "
 function! s:get_server_url()
@@ -272,4 +270,28 @@ function! s:get_server_url()
     return g:hiki_url . '/'
   endif
 endfunction
-
+"
+" get
+"
+function! s:get(url, ...)
+  let param    = a:0 > 0 ? a:000[0] : {}
+  return unite#hiki#http#get(a:url , param)
+endfunction
+"
+" post
+"
+function! s:post(url, param)
+  return unite#hiki#http#post(a:url , a:param)
+endfunction
+"
+" get session id
+"
+function! s:get_session_id()
+  return split(readfile(g:hiki_cookie)[4])[6]
+endfunction
+"
+" get contents
+"
+function! s:get_contents()
+  return iconv(join(getline(1 , '$') , "\n") , &enc , 'euc-jp') . "\n"
+endfunction
