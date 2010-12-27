@@ -121,7 +121,7 @@ endfunction
 " login
 "
 function! s:login()
-  call delete(g:hiki_cookie)
+  call delete(s:cookie_path())
   let url   = s:server_url() . '/?c=login;p=FrontPage'
   let param = {
         \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
@@ -157,7 +157,7 @@ function! s:load_page(source, ... )
   endif
 
   let url  = s:server_url() . '/?c=edit;p=' . http#escape(a:source.unite_word)
-  let res  = s:get(url , {'cookie' : g:hiki_cookie})
+  let res  = s:get(url , {'cookie' : s:cookie_path()})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
   let md5hex     = matchstr(res.content , 'name="md5hex"\s*value="\zs[^"]*\ze"')
@@ -288,7 +288,7 @@ endfunction
 function! s:post(url, data)
   let params = {
         \ 'param'  : a:data ,
-        \ 'cookie' : g:hiki_cookie ,
+        \ 'cookie' : s:cookie_path() ,
         \ 'http10' : 1
         \ }
   return unite#hiki#http#post(a:url , params)
@@ -297,11 +297,24 @@ endfunction
 " get session id
 "
 function! s:get_session_id()
-  return split(readfile(g:hiki_cookie)[4])[6]
+  return split(readfile(s:cookie_path())[4])[6]
 endfunction
 "
 " get contents
 "
 function! s:get_contents()
   return iconv(join(getline(1 , '$') , "\n") , &enc , 'euc-jp') . "\n"
+endfunction
+"
+"
+"
+function! s:cookie_path()
+  if exists('g:hiki_cookie')
+    return g:hiki_cookie
+  endif
+  if exists('s:hiki_cookie')
+    return s:hiki_cookie
+  endif
+  let s:hiki_cookie = tempname()
+  return s:hiki_cookie
 endfunction
