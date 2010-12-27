@@ -47,6 +47,10 @@ function! s:unite_source.gather_candidates(args, context)
   "if len(option) != 0
   "  let s:candidates_cache = []
   "endif
+  "
+  if !exists('g:hiki_url')
+    echoerr 'you need to define g:hiki_url'
+  endif
 
   " return cache if exist
   if !empty(s:candidates_cache)
@@ -121,6 +125,11 @@ endfunction
 " login
 "
 function! s:login()
+  " check
+  if !exists('g:hiki_user') || !exists('g:hiki_password')
+    echoerr 'you need to define g:hiki_user and g:hiki_password'
+  endif
+
   call delete(s:cookie_path())
   let url   = s:server_url() . '/?c=login;p=FrontPage'
   let param = {
