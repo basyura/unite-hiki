@@ -203,7 +203,7 @@ function! s:load_page(source, ... )
   " cache source
   let b:unite_hiki_source = a:source
   " clear undo
-  call unite#yarm#clear_undo()
+  call s:clear_undo()
   setlocal nomodified
 endfunction
 "
@@ -327,6 +327,16 @@ function! s:cookie_path()
   endif
   let s:hiki_cookie = tempname()
   return s:hiki_cookie
+endfunction
+"
+" clear undo
+"
+function! s:clear_undo()
+  let old_undolevels = &undolevels
+  setlocal undolevels=-1
+  execute "normal a \<BS>\<Esc>"
+  let &l:undolevels = old_undolevels
+  unlet old_undolevels
 endfunction
 "
 " echo info log
