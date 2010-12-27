@@ -25,7 +25,6 @@
 " variables
 "
 "
-
 " 
 " source
 "
@@ -39,6 +38,8 @@ let s:unite_source      = {}
 let s:unite_source.name = 'hiki'
 let s:unite_source.default_action = {'common' : 'open'}
 let s:unite_source.action_table   = {}
+
+highlight unite_hiki_ok guifg=white guibg=blue
 " create list
 function! s:unite_source.gather_candidates(args, context)
   " parse args
@@ -57,7 +58,7 @@ function! s:unite_source.gather_candidates(args, context)
     return s:candidates_cache
   endif
   " cache issues
-  call unite#yarm#info('now caching issues ...')
+  call s:info('now caching list ...')
   
   if len(a:args) == 1
     let list = s:search(a:args[0])
@@ -209,9 +210,9 @@ endfunction
 " update_contents
 "
 function! s:update_contents()
-  echohl yarm_ok
+  echohl unite_hiki_ok
   if input('update ? (y/n) : ') != 'y'
-    return unite#yarm#info('update was canceled')
+    return s:info('update was canceled')
   endif
   echohl None
 
@@ -226,8 +227,8 @@ function! s:update_contents()
   let res = s:post(s:server_url() . '/' , b:data)
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
-    echo 'OK'
     call s:load_page(b:unite_hiki_source , {'force' : 1 , 'logined' : 1})
+    call s:info(b:data.p . ' - ' . res.header[0])
   else
     echoerr res.header[0]
   endif
@@ -326,4 +327,18 @@ function! s:cookie_path()
   endif
   let s:hiki_cookie = tempname()
   return s:hiki_cookie
+endfunction
+"
+" echo info log
+"
+function! s:info(msg)
+  echohl unite_hiki_ok | echo a:msg | echohl None
+  return 1
+endfunction
+"
+" echo error log
+"
+function! s:error(msg)
+  echohl ErrorMsg | echo a:msg | echohl None
+  return 0
 endfunction

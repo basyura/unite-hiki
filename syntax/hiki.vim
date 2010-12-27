@@ -8,25 +8,30 @@ endif
 setlocal conceallevel=2
 setlocal concealcursor=nc
 
-syntax match uiki_page_link "\[\[.\{-1,}\]\]" contains=uiki_page_block
-syntax match uiki_strong /|[^|]\+|/ contains=uiki_strong_bar
-syntax match uiki_page_block /\[\[/ contained conceal
-syntax match uiki_page_block /\]\]/ contained conceal
+syntax match unite_hiki_page_link "\[\[.\{-1,}\]\]" contains=unite_hiki_page_block
+"syntax match unite_hiki_strong /|[^|]\+|/ contains=unite_hiki_strong_bar
+syntax match unite_hiki_page_block /\[\[/ contained conceal
+syntax match unite_hiki_page_block /\]\]/ contained conceal
 
-syntax match uiki_link       "\<http://\S\+"  
-syntax match uiki_link       "\<https://\S\+"
+syntax match unite_hiki_plugin "{{.\{-1,}}}"
 
-syntax match uiki_title1  "^!.*"
-syntax match uiki_title2  "^!!.*"
+syntax match unite_hiki_link       "\<http://\S\+"
+syntax match unite_hiki_link       "\<https://\S\+"
+
+syntax match unite_hiki_title1  "^!.*"
+syntax match unite_hiki_title2  "^!!.*"
 
 
-highlight default link uiki_page_link  Underlined
-highlight default link uiki_page_block Statement
+highlight default link unite_hiki_page_link  Underlined
+highlight default link unite_hiki_page_block Statement
 
-highlight default link uiki_link       Underlined
-highlight uiki_title1  guifg=orange  gui=underline
-highlight uiki_title2  guifg=orange
+highlight default link unite_hiki_link       Underlined
+highlight unite_hiki_title1  guifg=orange  gui=underline
+highlight unite_hiki_title2  guifg=orange
 
-highlight uiki_strong guifg=#FF80FF
+highlight unite_hiki_plugin guifg=magenta
+
+"highlight unite_hiki_strong guifg=#FF80FF
+highlight unite_hiki_ok guifg=white guibg=blue
 
 let b:current_syntax = 'hiki'
