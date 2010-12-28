@@ -38,6 +38,7 @@ let s:candidates_cache  = []
 "
 let s:unite_source      = {}
 let s:unite_source.name = 'hiki'
+let s:unite_source.is_volatile = 1
 let s:unite_source.default_action = {'common' : 'open'}
 let s:unite_source.action_table   = {}
 
@@ -47,6 +48,19 @@ function! s:unite_source.gather_candidates(args, context)
    
   if !exists('g:unite_hiki_server')
     echoerr 'you need to define g:unite_hiki_server'
+  endif
+  " create new page
+  if a:context.input != ''
+    let coppied = copy(s:candidates_cache)
+    let input   = substitute(a:context.input, '\*', '', 'g')
+    call add(coppied , {
+          \ 'word'         : input  ,
+          \ 'abbr'         : '[new page] ' . input ,
+          \ 'source'       : 'hiki' ,
+          \ 'source__link' : unite#hiki#http#escape(input)
+          \ })
+    " モードを考えると悩ましい
+    return coppied
   endif
 
   let option = s:parse_args(a:args)
@@ -75,7 +89,7 @@ function! s:unite_source.gather_candidates(args, context)
         \ "word"         : v:val.word,
         \ "abbr"         : v:val.abbr,
         \ "source"       : "hiki",
-        \ "source__hiki" : v:val,
+        \ "source__link" : v:val.link,
         \ }')
   return s:candidates_cache
 
@@ -90,7 +104,7 @@ let s:unite_source.action_table.common = s:action_table
 "
 let s:action_table.open = {'description' : 'open page'}
 function! s:action_table.open.func(candidate)
-  call s:load_page(a:candidate.source__hiki)
+  call s:load_page(a:candidate)
 endfunction
 "
 " get_page_list
@@ -146,7 +160,7 @@ endfunction
 "
 " load page
 "
-function! s:load_page(source, ... )
+function! s:load_page(candidate, ... )
   
   call s:info('now loading ...')
 
@@ -163,7 +177,7 @@ function! s:load_page(source, ... )
    call s:login()
   endif
 
-  let bufname = 'hiki ' . a:source.word
+  let bufname = 'hiki ' . a:candidate.word
   let bufno   = bufnr(bufname . "$")
   " 強制上書きまたは隠れバッファ(ls!で表示されるもの)の場合
   " 一度消してから開きなおし
@@ -173,7 +187,7 @@ function! s:load_page(source, ... )
     return
   endif
 
-  let url  = s:server_url() . '/?c=edit;p=' . a:source.link
+  let url  = s:server_url() . '/?c=edit;p=' . a:candidate.source__link
   let res  = s:get(url , {'cookie' : s:cookie_path()})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
@@ -196,6 +210,7 @@ function! s:load_page(source, ... )
 
   let b:autocmd_update = 1
   let b:data = {
+        \ 'word'       : a:candidate.word ,
         \ 'p'          : p ,
         \ 'c'          : c , 
         \ 'md5hex'     : md5hex , 
@@ -208,7 +223,7 @@ function! s:load_page(source, ... )
     call append(line('$') , iconv(line , 'euc-jp' , &enc))
   endfor
   " cache source
-  let b:unite_hiki_source = a:source
+  let b:unite_hiki_candidate = a:candidate
   " clear undo
   call s:clear_undo()
   setlocal nomodified
@@ -234,8 +249,8 @@ function! s:update_contents()
   let res = s:post(s:server_url() . '/' , b:data)
   let status = split(res.header[0])[1]
   if status == '200' || status == '100'
-    call s:load_page(b:unite_hiki_source , {'force' : 1 , 'logined' : 1})
-    call s:info(b:data.p . ' - ' . res.header[0])
+    call s:load_page(b:unite_hiki_candidate , {'force' : 1 , 'logined' : 1})
+    call s:info(b:data.word . ' - ' . res.header[0])
   else
     echoerr res.header[0]
   endif
