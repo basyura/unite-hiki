@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 27 Dec 2010
+" Last Modified: 28 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -49,8 +49,8 @@ function! s:unite_source.gather_candidates(args, context)
   "  let s:candidates_cache = []
   "endif
   "
-  if !exists('g:hiki_url')
-    echoerr 'you need to define g:hiki_url'
+  if !exists('g:unite_hiki_server')
+    echoerr 'you need to define g:unite_hiki_server'
   endif
 
   " return cache if exist
@@ -127,14 +127,14 @@ endfunction
 "
 function! s:login()
   " check
-  if !exists('g:hiki_user') || !exists('g:hiki_password')
-    echoerr 'you need to define g:hiki_user and g:hiki_password'
+  if !exists('g:unite_hiki_user') || !exists('g:unite_hiki_password')
+    echoerr 'you need to define g:unite_hiki_user and g:unite_hiki_password'
   endif
 
   call delete(s:cookie_path())
   let url   = s:server_url() . '/?c=login;p=FrontPage'
   let param = {
-        \ 'name' : g:hiki_user , 'password' : g:hiki_password , 
+        \ 'name' : g:unite_hiki_user , 'password' : g:unite_hiki_password , 
         \ 'c' : 'login' , 'p' : ''
         \ }
   let res = s:post(url , param)
@@ -283,7 +283,7 @@ endfunction
 " server_url
 "
 function! s:server_url()
-  return substitute(g:hiki_url , '/$' , '' , '')
+  return substitute(g:unite_hiki_server , '/$' , '' , '')
 endfunction
 "
 " get
@@ -319,14 +319,14 @@ endfunction
 "
 "
 function! s:cookie_path()
-  if exists('g:hiki_cookie')
-    return g:hiki_cookie
+  if exists('g:unite_hiki_cookie')
+    return g:unite_hiki_cookie
   endif
-  if exists('s:hiki_cookie')
-    return s:hiki_cookie
+  if exists('s:unite_hiki_cookie')
+    return s:unite_hiki_cookie
   endif
-  let s:hiki_cookie = tempname()
-  return s:hiki_cookie
+  let s:unite_hiki_cookie = tempname()
+  return s:unite_hiki_cookie
 endfunction
 "
 " clear undo
