@@ -92,7 +92,6 @@ let s:action_table.open = {'description' : 'open page'}
 function! s:action_table.open.func(candidate)
   call s:load_page(a:candidate.source__hiki)
 endfunction
-
 "
 " get_page_list
 "
@@ -104,7 +103,7 @@ function! s:get_page_list()
     let pare = {
           \ 'word' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'abbr' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
-          \ 'link'       : matchstr(v , 'a href="\zs.\{-}\ze\">')
+          \ 'link' : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
           \ }
     if pare.word != ""
       call add(list , pare)
@@ -174,7 +173,7 @@ function! s:load_page(source, ... )
     return
   endif
 
-  let url  = s:server_url() . '/?c=edit;p=' . http#escape(a:source.word)
+  let url  = s:server_url() . '/?c=edit;p=' . a:source.link
   let res  = s:get(url , {'cookie' : s:cookie_path()})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
@@ -254,7 +253,7 @@ function! s:search(key)
   for v in split(ul_inner , '<li>')
     let pare = {
           \ 'word'        : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
-          \ 'link'        : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'link'        : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
           \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]') , 'euc-jp' , &enc)
           \ }
     if pare.word != ""
@@ -276,7 +275,7 @@ function! s:recent()
   for v in split(ul_inner , '<li>')
     let pare = {
           \ 'word'      : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
-          \ 'link'      : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'link'      : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
           \ 'diff_link' : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
           \ 'user'      : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
           \ }
