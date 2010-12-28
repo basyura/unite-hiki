@@ -24,7 +24,9 @@
 "
 " variables
 "
-"
+"   let g:unite_hiki_user     = 'user'
+"   let g:unite_hiki_password = 'password'
+"   let g:unite_hiki_server   = 'http://hiki.server'
 " 
 " source
 "
@@ -42,14 +44,14 @@ let s:unite_source.action_table   = {}
 highlight unite_hiki_ok guifg=white guibg=blue
 " create list
 function! s:unite_source.gather_candidates(args, context)
-
-  let option = s:parse_args(a:args)
    
   if !exists('g:unite_hiki_server')
     echoerr 'you need to define g:unite_hiki_server'
   endif
 
-  if option.forcely || option.q != ''
+  let option = s:parse_args(a:args)
+
+  if option.exists_param
     let s:candidates_cache = []
   endif
 
@@ -57,10 +59,12 @@ function! s:unite_source.gather_candidates(args, context)
     return s:candidates_cache
   endif
 
-  
   if option.q != ''
     call s:info('now searching ' . option.q .  ' ...')
     let list = s:search(option.q)
+  elseif option.recent 
+    call s:info('now caching recent list ...')
+    let list = s:recent()
   else
     call s:info('now caching page list ...')
     let list = s:get_page_list()
@@ -271,12 +275,15 @@ function! s:recent()
   let list = []
   for v in split(ul_inner , '<li>')
     let pare = {
-          \ 'title'     : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
-          \ 'link'      : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
-          \ 'diff_link' : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
-          \ 'user'      : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
+          \ 'unite_word' : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
+          \ 'link'       : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'diff_link'  : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
+          \ 'user'       : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
           \ }
-    call add(list , pare)
+    if pare.unite_word != ""
+      let pare.unite_abbr = pare.unite_word . ' (' . pare.user . ')'
+      call add(list , pare)
+    endif
   endfor
   return list
 endfunction
@@ -349,12 +356,20 @@ function! s:parse_args(args)
   let convert_def = {
         \ '!'   : 'forcely'
         \ }
-  let option = {'forcely' : 0 , 'q' : ''}
+  let option = {
+    \ 'exists_param' : 0 ,
+    \ 'forcely'      : 0 , 
+    \ 'recent'       : 0 , 
+    \ 'q'            : ''
+    \ }
+  let exists_param = 0
   for arg in a:args
+    let exists_param = 1
     let v = split(arg , '=')
     let v[0] = has_key(convert_def , v[0]) ? convert_def[v[0]] : v[0]
     let option[v[0]] = len(v) == 1 ? 1 : v[1]
   endfor
+  let option.exists_param = exists_param
   return option
 endfunction
 "
