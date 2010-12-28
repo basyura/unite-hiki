@@ -17,11 +17,11 @@ syntax match unite_hiki_plugin "{{.\{-1,}}}"
 syntax match unite_hiki_link       "\<http://\S\+"
 syntax match unite_hiki_link       "\<https://\S\+"
 
-syntax match unite_hiki_title1      "^!.*"        contains=unite_hiki_title1_mark
+syntax match unite_hiki_title1      "^!.*"     contains=unite_hiki_title1_mark
 syntax match unite_hiki_title1_mark "^!\s*"    contained conceal
-syntax match unite_hiki_title2      "^!!.*"       contains=unite_hiki_title2_mark
+syntax match unite_hiki_title2      "^!!.*"    contains=unite_hiki_title2_mark
 syntax match unite_hiki_title2_mark "^!!\s*"   contained conceal
-syntax match unite_hiki_title3      "^!!!.*"      contains=unite_hiki_title3_mark
+syntax match unite_hiki_title3      "^!!!.*"   contains=unite_hiki_title3_mark
 syntax match unite_hiki_title3_mark "^!!!\s*"  contained conceal
 
 
