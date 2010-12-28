@@ -110,17 +110,17 @@ endfunction
 " get_page_list
 "
 function! s:get_page_list()
-  let res      = s:get(s:server_url() . '/?c=index')
-  let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
-  let list = []
-  for v in split(ul_inner , '<li>')
-    let pare = {
+  let res   = s:get(s:server_url() . '/?c=index')
+  let inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  let list  = []
+  for v in split(inner , '<li>')
+    let source = {
           \ 'word' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'abbr' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'link' : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
           \ }
-    if pare.word != ""
-      call add(list , pare)
+    if source.word != ""
+      call add(list , source)
     endif
   endfor
   return list
@@ -262,18 +262,18 @@ endfunction
 "
 function! s:search(key)
   let url = s:server_url() . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
-  let res = s:get(url)
-  let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
-  let list = []
-  for v in split(ul_inner , '<li>')
-    let pare = {
-          \ 'word'        : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
-          \ 'link'        : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
-          \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]') , 'euc-jp' , &enc)
+  let res   = s:get(url)
+  let inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  let list  = []
+  for v in split(inner , '<li>')
+    let source = {
+          \ 'word'        : iconv(matchstr(v , '.*>\zs.\{-}\ze</a')    , 'euc-jp' , &enc) ,
+          \ 'link'        : matchstr(v , 'a href="\./?.*p=\zs.\{-}\ze&.*">') ,
+          \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]')    , 'euc-jp' , &enc)
           \ }
-    if pare.word != ""
-      let pare.abbr = pare.word . ' ' . pare.description
-      call add(list , pare)
+    if source.word != ""
+      let source.abbr = s:ljust(source.word , 15) . ' - ' . source.description
+      call add(list , source)
     endif
   endfor
   return list
@@ -283,20 +283,19 @@ endfunction
 " return [{title , link , diff_link , user} , ... ]
 "
 function! s:recent()
-  let url = s:server_url() . '/?c=recent'
-  let res = s:get(url)
-  let ul_inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
-  let list = []
-  for v in split(ul_inner , '<li>')
-    let pare = {
+  let res   = s:get(s:server_url() . '/?c=recent')
+  let inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
+  let list  = []
+  for v in split(inner , '<li>')
+    let source = {
           \ 'word'      : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
-          \ 'link'      : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
+          \ 'link'      : matchstr(v , 'a href="\./?\zs.\{-}\ze\">') ,
           \ 'diff_link' : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
           \ 'user'      : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
           \ }
-    if pare.word != ""
-      let pare.abbr = pare.word . ' (' . pare.user . ')'
-      call add(list , pare)
+    if source.word != ""
+      let source.abbr = source.word . ' (' . source.user . ')'
+      call add(list , source)
     endif
   endfor
   return list
@@ -314,7 +313,7 @@ endfunction
 " get
 "
 function! s:get(url, ...)
-  let param    = a:0 > 0 ? a:000[0] : {}
+  let param = a:0 > 0 ? a:000[0] : {}
   return unite#hiki#http#get(a:url , param)
 endfunction
 "
@@ -399,4 +398,18 @@ endfunction
 function! s:error(msg)
   echohl ErrorMsg | echo a:msg | echohl None
   return 0
+endfunction
+"
+" padding  ljust
+"
+function! s:ljust(str, size, ...)
+  let str = a:str
+  let c   = a:0 > 0 ? a:000[0] : ' '
+  while 1
+    if strwidth(str) >= a:size
+      return str
+    endif
+    let str .= c
+  endwhile
+  return str
 endfunction
