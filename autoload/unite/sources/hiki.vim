@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 28 Dec 2010
+" Last Modified: 29 Dec 2010
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -173,7 +173,6 @@ function! s:load_page(candidate, ... )
   endif
 
   if !param.logined
-   " cookie を消してログインしなおさないと中身が取れないよ
    call s:login()
   endif
 
@@ -208,7 +207,6 @@ function! s:load_page(candidate, ... )
     autocmd BufWriteCmd <buffer> call <SID>update_contents()
   augroup END
 
-  let b:autocmd_update = 1
   let b:data = {
         \ 'word'       : a:candidate.word ,
         \ 'p'          : p ,
@@ -248,7 +246,7 @@ function! s:update_contents()
   " http1.1 だと 100 で変えることがあるので http1.0 でポストする
   let res = s:post(s:server_url() . '/' , b:data)
   let status = split(res.header[0])[1]
-  if status == '200' || status == '100'
+  if status == '200'
     call s:load_page(b:unite_hiki_candidate , {'force' : 1 , 'logined' : 1})
     call s:info(b:data.word . ' - ' . res.header[0])
   else
@@ -337,7 +335,7 @@ endfunction
 " get contents
 "
 function! s:get_contents()
-  return iconv(join(getline(1 , '$') , "\n") , &enc , 'euc-jp') . "\n"
+  return iconv(join(getline(1 , '$') , "\n") , &enc , 'euc-jp')
 endfunction
 "
 "
@@ -363,7 +361,7 @@ function! s:clear_undo()
   unlet old_undolevels
 endfunction
 "
-"
+" parse args
 "
 function! s:parse_args(args)
   let convert_def = {
