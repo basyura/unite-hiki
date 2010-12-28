@@ -72,8 +72,8 @@ function! s:unite_source.gather_candidates(args, context)
 
   let s:candidates_cache = 
         \ map(list , '{
-        \ "word"         : v:val.unite_word,
-        \ "abbr"         : v:val.unite_abbr,
+        \ "word"         : v:val.word,
+        \ "abbr"         : v:val.abbr,
         \ "source"       : "hiki",
         \ "source__hiki" : v:val,
         \ }')
@@ -102,11 +102,11 @@ function! s:get_page_list()
   let list = []
   for v in split(ul_inner , '<li>')
     let pare = {
-          \ 'unite_word' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
-          \ 'unite_abbr' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'word' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'abbr' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'link'       : matchstr(v , 'a href="\zs.\{-}\ze\">')
           \ }
-    if pare.unite_word != ""
+    if pare.word != ""
       call add(list , pare)
     endif
   endfor
@@ -164,7 +164,7 @@ function! s:load_page(source, ... )
    call s:login()
   endif
 
-  let bufname = 'hiki ' . a:source.unite_word
+  let bufname = 'hiki ' . a:source.word
   let bufno   = bufnr(bufname . "$")
   " 強制上書きまたは隠れバッファ(ls!で表示されるもの)の場合
   " 一度消してから開きなおし
@@ -174,7 +174,7 @@ function! s:load_page(source, ... )
     return
   endif
 
-  let url  = s:server_url() . '/?c=edit;p=' . http#escape(a:source.unite_word)
+  let url  = s:server_url() . '/?c=edit;p=' . http#escape(a:source.word)
   let res  = s:get(url , {'cookie' : s:cookie_path()})
   let p          = matchstr(res.content , 'name="p"\s*value="\zs[^"]*\ze"')
   let c          = matchstr(res.content , 'name="c"\s*value="\zs[^"]*\ze"')
@@ -253,12 +253,12 @@ function! s:search(key)
   let list = []
   for v in split(ul_inner , '<li>')
     let pare = {
-          \ 'unite_word'  : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
+          \ 'word'        : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'link'        : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
           \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]') , 'euc-jp' , &enc)
           \ }
-    if pare.unite_word != ""
-      let pare.unite_abbr = pare.unite_word . ' ' . pare.description
+    if pare.word != ""
+      let pare.abbr = pare.word . ' ' . pare.description
       call add(list , pare)
     endif
   endfor
@@ -275,13 +275,13 @@ function! s:recent()
   let list = []
   for v in split(ul_inner , '<li>')
     let pare = {
-          \ 'unite_word' : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
-          \ 'link'       : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
-          \ 'diff_link'  : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
-          \ 'user'       : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
+          \ 'word'      : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
+          \ 'link'      : matchstr(v , 'a href="\zs.\{-}\ze\">') ,
+          \ 'diff_link' : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
+          \ 'user'      : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
           \ }
-    if pare.unite_word != ""
-      let pare.unite_abbr = pare.unite_word . ' (' . pare.user . ')'
+    if pare.word != ""
+      let pare.abbr = pare.word . ' (' . pare.user . ')'
       call add(list , pare)
     endif
   endfor
