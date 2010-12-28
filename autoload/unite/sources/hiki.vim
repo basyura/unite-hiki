@@ -42,27 +42,27 @@ let s:unite_source.action_table   = {}
 highlight unite_hiki_ok guifg=white guibg=blue
 " create list
 function! s:unite_source.gather_candidates(args, context)
-  " parse args
-  "let option = unite#yarm#parse_args(a:args)
-  " clear cache. option に判定メソッドを持たせたい
-  "if len(option) != 0
-  "  let s:candidates_cache = []
-  "endif
-  "
+
+  let option = s:parse_args(a:args)
+   
   if !exists('g:unite_hiki_server')
     echoerr 'you need to define g:unite_hiki_server'
   endif
 
-  " return cache if exist
+  if option.forcely || option.q != ''
+    let s:candidates_cache = []
+  endif
+
   if !empty(s:candidates_cache)
     return s:candidates_cache
   endif
-  " cache issues
-  call s:info('now caching list ...')
+
   
-  if len(a:args) == 1
-    let list = s:search(a:args[0])
+  if option.q != ''
+    call s:info('now searching ' . option.q .  ' ...')
+    let list = s:search(option.q)
   else
+    call s:info('now caching page list ...')
     let list = s:get_page_list()
   endif
 
@@ -74,6 +74,7 @@ function! s:unite_source.gather_candidates(args, context)
         \ "source__hiki" : v:val,
         \ }')
   return s:candidates_cache
+
 endfunction
 "
 " action table
@@ -143,6 +144,9 @@ endfunction
 " load page
 "
 function! s:load_page(source, ... )
+  
+  call s:info('now loading ...')
+
   let param   = a:0 > 0 ? a:000[0] : {}
   if !has_key(param , 'force')
     let param.force   = 0
@@ -337,6 +341,21 @@ function! s:clear_undo()
   execute "normal a \<BS>\<Esc>"
   let &l:undolevels = old_undolevels
   unlet old_undolevels
+endfunction
+"
+"
+"
+function! s:parse_args(args)
+  let convert_def = {
+        \ '!'   : 'forcely'
+        \ }
+  let option = {'forcely' : 0 , 'q' : ''}
+  for arg in a:args
+    let v = split(arg , '=')
+    let v[0] = has_key(convert_def , v[0]) ? convert_def[v[0]] : v[0]
+    let option[v[0]] = len(v) == 1 ? 1 : v[1]
+  endfor
+  return option
 endfunction
 "
 " echo info log
