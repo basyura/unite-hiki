@@ -1,3 +1,40 @@
-unite-hiki 工事予定地
+unite-hiki - a untie.vim plugin for hiki
 
+dependet
+
+  unite.vim
+    https://github.com/Shougo/unite.vim
+
+variables
+
+  let g:unite_hiki_user     = 'user'
+    ログインユーザ
+
+  let g:unite_hiki_password = 'password'
+    ログインパスワード
+  
+  let g:unite_hiki_server   = 'http://hiki.server'
+    hiki が稼動しているサーバ
+
+  let g:unite_hiki_cookie = /tmp/hiki.cookie
+    cookie を保存するファイル
+    指定しない場合は tempname() を実行して得られたファイル
+
+usage
+
+  :Unite hiki
+    ページ一覧を表示。
+    選択すると該当ページの内容を表示
+
+  :Unite hiki:q=XXX
+    XXX を含むページを検索して一覧を表示
+    選択すると該当ページの内容を表示
+
+  :Unite hiki:recent
+    最近更新したページの一覧を表示
+    選択すると該当ページの内容を表示
+
+  :Unite hiki:!
+    キャッシュをクリアしてページ一覧を取りなおす。
+    (キャッシュをクリアする以外は :Unite hiki と同じ)
 
