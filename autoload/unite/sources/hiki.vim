@@ -54,10 +54,11 @@ function! s:unite_source.gather_candidates(args, context)
     let coppied = copy(s:candidates_cache)
     let input   = substitute(a:context.input, '\*', '', 'g')
     call add(coppied , {
-          \ 'word'         : input  ,
-          \ 'abbr'         : '[new page] ' . input ,
-          \ 'source'       : 'hiki' ,
-          \ 'source__link' : unite#hiki#http#escape(input)
+          \ 'word'              : input  ,
+          \ 'abbr'              : '[new page] ' . input ,
+          \ 'source'            : 'hiki' ,
+          \ 'source__link'      : unite#hiki#http#escape(input) ,
+          \ 'source__is_exists' : 0 ,
           \ })
     " モードを考えると悩ましい
     return coppied
@@ -86,10 +87,11 @@ function! s:unite_source.gather_candidates(args, context)
 
   let s:candidates_cache = 
         \ map(list , '{
-        \ "word"         : v:val.word,
-        \ "abbr"         : v:val.abbr,
-        \ "source"       : "hiki",
-        \ "source__link" : v:val.link,
+        \ "word"              : v:val.word,
+        \ "abbr"              : v:val.abbr,
+        \ "source"            : "hiki",
+        \ "source__link"      : v:val.link,
+        \ "source__is_exists" : 1 ,
         \ }')
   return s:candidates_cache
 
@@ -215,7 +217,8 @@ function! s:load_page(candidate, ... )
         \ 'session_id' : session_id , 
         \ 'page_title' : page_title , 
         \ 'keyword'    : keyword    ,
-        \ 'update_timestamp' : 'on'
+        \ 'update_timestamp' : 'on' ,
+        \ 'is_exists'  : a:candidate.source__is_exists
         \ }
   for line in split(contents , "\n")
     call append(line('$') , iconv(line , 'euc-jp' , &enc))
@@ -244,14 +247,39 @@ function! s:update_contents()
   let b:data.session_id = s:get_session_id()
   let b:data.contents   = s:get_contents()
   " http1.1 だと 100 で変えることがあるので http1.0 でポストする
-  let res = s:post(s:server_url() . '/' , b:data)
+  let res    = s:post(s:server_url() . '/' , b:data)
   let status = split(res.header[0])[1]
-  if status == '200'
-    call s:load_page(b:unite_hiki_candidate , {'force' : 1 , 'logined' : 1})
-    call s:info(b:data.word . ' - ' . res.header[0])
-  else
-    echoerr res.header[0]
+  " 更新に失敗した場合はメッセージを通知して終了
+  if status != '200'
+    return s:error(res.header[0])
+  end
+  " 削除の場合は閉じた上で候補の一覧から削除する
+  if b:data.is_exists && b:data.contents == ''
+    call remove(s:candidates_cache ,
+            \ index(map(copy(s:candidates_cache) , "v:val.word") ,
+            \       b:data.word))
+    " 表示されない
+    call s:info(b:data.word . ' is deleted - ' . res.header[0])
+    bd!
+    return
   endif
+  " 新規の場合は一覧に追加する
+  if !b:data.is_exists
+    let source = {
+          \ 'word'              : b:data.word ,
+          \ 'abbr'              : b:data.word ,
+          \ 'source'            : 'hiki' ,
+          \ 'source__link'      : unite#hiki#http#escape(b:data.word) ,
+          \ 'source__is_exists' : 1 ,
+          \ }
+    call insert(s:candidates_cache , source , 0)
+    call s:load_page(source , {'force' : 1 , 'logined' : 1})
+    call s:info(b:data.word . ' is created - ' . res.header[0])
+    return
+  endif
+  " 通常更新
+  call s:load_page(b:unite_hiki_candidate , {'force' : 1 , 'logined' : 1})
+  call s:info(b:data.word . ' - ' . res.header[0])
 
 endfunction
 "
