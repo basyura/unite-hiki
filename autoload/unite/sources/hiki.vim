@@ -163,6 +163,18 @@ function! s:login()
   let res = s:post(url , param)
 endfunction
 "
+"
+"
+function! s:load_page_with_page_name(page_name)
+  for candidate in s:candidates_cache
+    if candidate.word == a:page_name
+      call s:load_page(candidate)
+      return
+    endif
+  endfor
+  call s:error("no matched : " . a:page_name)
+endfunction
+"
 " load page
 "
 function! s:load_page(candidate, ... )
@@ -339,6 +351,40 @@ function! s:recent()
   return list
 endfunction
 "
+" autocmd
+"
+augroup unite-hiki-filetype
+  autocmd!
+  autocmd FileType hiki call s:hiki_settings()
+augroup END
+"
+"
+"
+function s:hiki_settings()
+  nmap <silent> <buffer> <CR> :call <SID>hiki_buffer_enter_action()<CR>
+endfunction
+"
+"
+"
+function s:hiki_buffer_enter_action()
+  let matched = matchlist(expand('<cWORD>') , 'https\?://\S\+')
+  if len(matched) != 0
+    let url = s:erase_blanket(matched[0])
+    echohl yarm_ok | execute "OpenBrowser " . url | echohl None
+    return
+  endif
+  " get syntax id
+  let hiid = synIDattr(synID(line('.'),col('.'),1),'name')
+  " open issue
+  if hiid =~ 'unite_hiki_page_link'
+    " 正規表現で切り出せなかった
+    let page = s:erase_blanket(expand('<cWORD>'))
+    call s:load_page_with_page_name(page)
+  else
+    execute "normal! \n"
+  endif
+endfunction
+"
 " - private functions -
 "
 "
@@ -450,4 +496,11 @@ function! s:ljust(str, size, ...)
     let str .= c
   endwhile
   return str
+endfunction
+"
+"
+"
+function! s:erase_blanket(word)
+   return substitute(substitute(a:word , "^[[" , "" , "") ,
+                   \ "]]$" , "" , "")
 endfunction
