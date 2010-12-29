@@ -376,7 +376,7 @@ function s:hiki_buffer_enter_action()
   " get syntax id
   let hiid = synIDattr(synID(line('.'),col('.'),1),'name')
   " open issue
-  if hiid =~ 'unite_hiki_page_link'
+  if hiid =~ 'unite_hiki_page_link' || hiid =~ 'unite_hiki_page_block'
     " 正規表現で切り出せなかった
     let page = s:erase_blanket(expand('<cWORD>'))
     call s:load_page_with_page_name(page)
