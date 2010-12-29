@@ -126,6 +126,9 @@ function! unite#hiki#http#get(url, ... )
   if get(param , 'location' , 0)
     let command .= ' -L'
   endif
+  if get(param , 'http10' , 0)
+    let command .= ' -0'
+  endif
   let cookie = get(param , 'cookie'  , '')
   if cookie != '' 
     let command .= filereadable(cookie) ? ' -b ' . cookie : ' -c' . cookie

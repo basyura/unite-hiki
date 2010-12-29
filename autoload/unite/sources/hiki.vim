@@ -121,6 +121,9 @@ function! s:get_page_list()
           \ 'abbr' : iconv(matchstr(v , '.*>\zs.\{-}\ze</a') , 'euc-jp' , &enc) ,
           \ 'link' : matchstr(v , 'a href="\./?\zs.\{-}\ze\">')
           \ }
+    if source.link == ''
+      let source.link = 'FrontPage'
+    endif
     if source.word != ""
       call add(list , source)
     endif
@@ -297,6 +300,9 @@ function! s:search(key)
           \ 'link'        : matchstr(v , 'a href="\./?.*p=\zs.\{-}\ze&.*">') ,
           \ 'description' : iconv(matchstr(v , '.*\[\zs.\{-}\ze\]')    , 'euc-jp' , &enc)
           \ }
+    if source.link == ''
+      let source.link = 'FrontPage'
+    endif
     if source.word != ""
       let source.abbr = s:ljust(source.word , 15) . ' - ' . source.description
       call add(list , source)
@@ -315,10 +321,13 @@ function! s:recent()
   for v in split(inner , '<li>')
     let source = {
           \ 'word'      : iconv(matchstr(v , ': <a href=.*>\zs.\{-}\ze</a> ') , 'euc-jp' , &enc) ,
-          \ 'link'      : matchstr(v , 'a href="\./?\zs.\{-}\ze\">') ,
+          \ 'link'      : matchstr(v , '<a href="\./?\=\zs.\{-}\ze\">') ,
           \ 'diff_link' : matchstr(v , '(<a href="\zs.\{-}\ze\">') ,
           \ 'user'      : iconv(matchstr(v , '.*by \zs.\{-}\ze ') , 'euc-jp' , &enc) 
           \ }
+    if source.link == ''
+      let source.link = 'FrontPage'
+    endif
     if source.word != ""
       let source.abbr = source.word . ' (' . source.user . ')'
       call add(list , source)
