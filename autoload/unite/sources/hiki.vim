@@ -193,7 +193,7 @@ function! s:load_page(candidate, ... )
    call s:login()
   endif
 
-  let bufname = 'hiki ' . a:candidate.word
+  let bufname = a:candidate.word . ' (hiki)'
   let bufno   = bufnr(bufname . "$")
   " 強制上書きまたは隠れバッファ(ls!で表示されるもの)の場合
   " 一度消してから開きなおし
