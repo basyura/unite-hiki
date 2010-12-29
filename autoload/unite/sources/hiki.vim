@@ -256,6 +256,9 @@ function! s:update_contents()
   if status != '200'
     return s:error(res.header[0])
   end
+  if res.content !~ '<meta http-equiv="refresh" content='
+    return s:error('update error. maybe conflict.')
+  endif
   " 削除の場合は閉じた上で候補の一覧から削除する
   if b:data.is_exists && b:data.contents == ''
     call remove(s:candidates_cache ,
