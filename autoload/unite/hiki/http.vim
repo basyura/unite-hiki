@@ -47,7 +47,8 @@ function! s:nr2hex(nr)
 endfunction
 
 function! s:urlencode_char(c)
-  let utf = iconv(a:c, &encoding, "utf-8")
+"  let utf = iconv(a:c, &encoding, "utf-8")
+  let utf = a:c
   if utf == ""
     let utf = a:c
   endif
