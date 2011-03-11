@@ -199,7 +199,7 @@ function! s:load_page(candidate, ... )
   " 一度消してから開きなおし
   if param.force || !buflisted(bufname)
   else
-    execute 'buffer ' . bufno
+    execute 'buffer ' . bufno | redraw | call s:info('')
     return
   endif
 
@@ -241,8 +241,7 @@ function! s:load_page(candidate, ... )
   " cache source
   let b:unite_hiki_candidate = a:candidate
   " clear undo
-  call s:clear_undo()
-  setlocal nomodified
+  call s:clear_undo() | setlocal nomodified | redraw | call s:info('')
 endfunction
 "
 " update_contents
