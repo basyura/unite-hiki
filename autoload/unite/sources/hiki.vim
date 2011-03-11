@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 29 Dec 2010
+" Last Modified: 11 Mar 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -219,10 +219,10 @@ function! s:load_page(candidate, ... )
   setlocal noswapfile
   setlocal filetype=hiki
   " autocmd
-  augroup unite-hiki-load-page
-    autocmd!
+  if !exists("b:unite_hiki_autocmd_load_page")
     autocmd BufWriteCmd <buffer> call <SID>update_contents()
-  augroup END
+    let b:unite_hiki_autocmd_load_page = 1
+  endif
 
   let b:data = {
         \ 'word'       : a:candidate.word ,
