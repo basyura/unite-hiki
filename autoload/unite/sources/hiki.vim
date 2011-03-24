@@ -86,26 +86,28 @@ function! s:unite_source_hiki_search.gather_candidates(args, context)
 endfunction
 
 function! s:to_candidates(context, list)
-  if a:context.input != ''
-    let input   = substitute(a:context.input, '\*', '', 'g')
-    call add(a:list , {
-          \ 'word'              : input  ,
-          \ 'abbr'              : '[new page] ' . input ,
-          \ 'link'              : '' ,
-          \ 'source'            : 'hiki' ,
-          \ 'source__link'      : unite#hiki#http#escape(input) ,
-          \ 'source__is_exists' : 0
-          \ })
-  endif
-
-  return 
-        \ map(a:list , '{
+    
+  let candidates = map(a:list , '{
         \ "word"              : v:val.word,
         \ "abbr"              : v:val.abbr,
         \ "source"            : "hiki",
         \ "source__link"      : v:val.link,
         \ "source__is_exists" : 1
         \ }')
+
+  if a:context.input != ''
+    let input   = substitute(a:context.input, '\*', '', 'g')
+    call add(candidates , {
+          \ 'word'              : input  ,
+          \ 'abbr'              : '[new page] ' . input ,
+          \ 'source'            : 'hiki' ,
+          \ 'source__link'      : unite#hiki#http#escape(input) ,
+          \ 'source__is_exists' : 0
+          \ })
+  endif
+
+  return candidates
+
 endfunction
 
 
