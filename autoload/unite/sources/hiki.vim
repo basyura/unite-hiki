@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 11 Mar 2011
+" Last Modified: 24 Mar 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,18 +31,87 @@
 " source
 "
 function! unite#sources#hiki#define()
-  return s:unite_source
+  return [
+        \ s:unite_source  , 
+        \ s:unite_source_hiki_list  , 
+        \ s:unite_source_hiki_search
+        \ ]
 endfunction
+"
+let s:action_table = {}
+"
+let s:unite_source = {
+      \ 'name'           : 'hiki',  
+      \ 'is_volatile'    : 1, 
+      \ 'default_action' : {'common' : 'open'},
+      \ 'action_table'   : {'common' : s:action_table}
+      \ }
+
+let s:unite_source_hiki_list = {
+      \ 'name'           : 'hiki/list' ,
+      \ 'is_volatile'    : 1 ,
+      \ 'default_action' : {'common' : 'open'} ,
+      \ 'action_table'   : {'common' : s:action_table}
+      \ }
+
+let s:unite_source_hiki_search = {
+      \ 'name'           : 'hiki/search' ,
+      \ 'is_volatile'    : 0 ,
+      \ 'default_action' : {'common' : 'open'} ,
+      \ 'action_table'   : {'common' : s:action_table}
+      \ }
+
 " cache
 let s:candidates_cache  = []
-"
-let s:unite_source      = {}
-let s:unite_source.name = 'hiki'
-let s:unite_source.is_volatile = 1
-let s:unite_source.default_action = {'common' : 'open'}
-let s:unite_source.action_table   = {}
+
+function! s:unite_source_hiki_list.gather_candidates(args, context)
+  if len(s:candidates_cache) == 0
+    let s:candidates_cache = s:get_page_list()
+  endif
+  return s:to_candidates(a:context , deepcopy(s:candidates_cache))
+endfunction
+
+function! s:unite_source_hiki_search.gather_candidates(args, context)
+  if len(a:args) == 0
+    call s:error('need keyword : Unite hiki/search:keyword')
+    return []
+  end
+
+  let keyword = ''
+  for arg in a:args
+    let keyword .= arg . ' '
+  endfor
+
+  return s:to_candidates(a:context , s:search(keyword))
+endfunction
+
+function! s:to_candidates(context, list)
+  if a:context.input != ''
+    let input   = substitute(a:context.input, '\*', '', 'g')
+    call add(a:list , {
+          \ 'word'              : input  ,
+          \ 'abbr'              : '[new page] ' . input ,
+          \ 'link'              : '' ,
+          \ 'source'            : 'hiki' ,
+          \ 'source__link'      : unite#hiki#http#escape(input) ,
+          \ 'source__is_exists' : 0
+          \ })
+  endif
+
+  return 
+        \ map(a:list , '{
+        \ "word"              : v:val.word,
+        \ "abbr"              : v:val.abbr,
+        \ "source"            : "hiki",
+        \ "source__link"      : v:val.link,
+        \ "source__is_exists" : 1
+        \ }')
+endfunction
+
 
 highlight unite_hiki_ok guifg=white guibg=blue
+
+
 " create list
 function! s:unite_source.gather_candidates(args, context)
    
@@ -96,11 +165,6 @@ function! s:unite_source.gather_candidates(args, context)
   return s:candidates_cache
 
 endfunction
-"
-" action table
-"
-let s:action_table = {}
-let s:unite_source.action_table.common = s:action_table
 " 
 " action - open
 "
@@ -242,6 +306,8 @@ function! s:load_page(candidate, ... )
   let b:unite_hiki_candidate = a:candidate
   " clear undo
   call s:clear_undo() | setlocal nomodified | redraw | call s:info('')
+  " clear cache
+  let s:candidates_cache  = []
 endfunction
 "
 " update_contents
