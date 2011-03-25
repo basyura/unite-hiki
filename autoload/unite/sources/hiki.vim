@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 24 Mar 2011
+" Last Modified: 25 Mar 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,31 +32,42 @@
 "
 function! unite#sources#hiki#define()
   return [
-        \ s:unite_source  , 
-        \ s:unite_source_hiki_list  , 
-        \ s:unite_source_hiki_search
+        \ s:unite_source_hiki_list   , 
+        \ s:unite_source_hiki_search ,
+        \ s:unite_source_hiki_recent ,
         \ ]
 endfunction
+
+"function! unite#sources#hiki#define()
+"  return map(['hiki' , 'hiki/list'  , 'hiki/search']  , '{
+"      \ "name"           : v:val  ,
+"      \ "default_action" : {"common" : "open"},
+"      \ "action_table"   : {"common" : s:action_table}
+"      \ }')
+"endfunction
 "
 let s:action_table = {}
 "
 let s:unite_source = {
       \ 'name'           : 'hiki',  
-      \ 'is_volatile'    : 1, 
       \ 'default_action' : {'common' : 'open'},
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
 let s:unite_source_hiki_list = {
       \ 'name'           : 'hiki/list' ,
-      \ 'is_volatile'    : 1 ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
 let s:unite_source_hiki_search = {
       \ 'name'           : 'hiki/search' ,
-      \ 'is_volatile'    : 0 ,
+      \ 'default_action' : {'common' : 'open'} ,
+      \ 'action_table'   : {'common' : s:action_table}
+      \ }
+
+let s:unite_source_hiki_recent = {
+      \ 'name'           : 'hiki/recent' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
@@ -65,35 +76,12 @@ let s:unite_source_hiki_search = {
 let s:candidates_cache  = []
 
 function! s:unite_source_hiki_list.gather_candidates(args, context)
-  if len(s:candidates_cache) == 0
-    let s:candidates_cache = s:get_page_list()
-  endif
-  return s:to_candidates(a:context , deepcopy(s:candidates_cache))
+  return s:get_page_list()
 endfunction
 
-function! s:unite_source_hiki_search.gather_candidates(args, context)
-  if len(a:args) == 0
-    call s:error('need keyword : Unite hiki/search:keyword')
-    return []
-  end
+function! s:unite_source_hiki_list.change_candidates(args, context)
 
-  let keyword = ''
-  for arg in a:args
-    let keyword .= arg . ' '
-  endfor
-
-  return s:to_candidates(a:context , s:search(keyword))
-endfunction
-
-function! s:to_candidates(context, list)
-    
-  let candidates = map(a:list , '{
-        \ "word"              : v:val.word,
-        \ "abbr"              : v:val.abbr,
-        \ "source"            : "hiki",
-        \ "source__link"      : v:val.link,
-        \ "source__is_exists" : 1
-        \ }')
+  let candidates = deepcopy(a:context.source.unite__cached_candidates)
 
   if a:context.input != ''
     let input   = substitute(a:context.input, '\*', '', 'g')
@@ -107,6 +95,36 @@ function! s:to_candidates(context, list)
   endif
 
   return candidates
+endfunction
+
+
+function! s:unite_source_hiki_search.gather_candidates(args, context)
+  if len(a:args) == 0
+    call s:error('need keyword : Unite hiki/search:keyword')
+    return []
+  end
+
+  let keyword = ''
+  for arg in a:args
+    let keyword .= arg . ' '
+  endfor
+
+  return s:to_candidates(s:search(keyword))
+endfunction
+
+function! s:unite_source_hiki_recent.gather_candidates(args, context)
+  return s:recent()
+endfunction
+
+function! s:to_candidates(list)
+    
+  return map(a:list , '{
+        \ "word"              : v:val.word,
+        \ "abbr"              : v:val.abbr,
+        \ "source"            : "hiki",
+        \ "source__link"      : v:val.link,
+        \ "source__is_exists" : 1
+        \ }')
 
 endfunction
 
@@ -115,58 +133,58 @@ highlight unite_hiki_ok guifg=white guibg=blue
 
 
 " create list
-function! s:unite_source.gather_candidates(args, context)
+"function! s:unite_source.gather_candidates(args, context)
    
-  if !exists('g:unite_hiki_server')
-    echoerr 'you need to define g:unite_hiki_server'
-  endif
-  " create new page
-  if a:context.input != ''
-    let coppied = copy(s:candidates_cache)
-    let input   = substitute(a:context.input, '\*', '', 'g')
-    call add(coppied , {
-          \ 'word'              : input  ,
-          \ 'abbr'              : '[new page] ' . input ,
-          \ 'source'            : 'hiki' ,
-          \ 'source__link'      : unite#hiki#http#escape(input) ,
-          \ 'source__is_exists' : 0 ,
-          \ })
-    " モードを考えると悩ましい
-    return coppied
-  endif
+  "if !exists('g:unite_hiki_server')
+    "echoerr 'you need to define g:unite_hiki_server'
+  "endif
+  "" create new page
+  "if a:context.input != ''
+    "let coppied = copy(s:candidates_cache)
+    "let input   = substitute(a:context.input, '\*', '', 'g')
+    "call add(coppied , {
+          "\ 'word'              : input  ,
+          "\ 'abbr'              : '[new page] ' . input ,
+          "\ 'source'            : 'hiki' ,
+          "\ 'source__link'      : unite#hiki#http#escape(input) ,
+          "\ 'source__is_exists' : 0 ,
+          "\ })
+    "" モードを考えると悩ましい
+    "return coppied
+  "endif
 
-  let option = s:parse_args(a:args)
+  "let option = s:parse_args(a:args)
 
-  if option.exists_param
-    let s:candidates_cache = []
-  endif
+  "if option.exists_param
+    "let s:candidates_cache = []
+  "endif
 
-  if !empty(s:candidates_cache)
-    return s:candidates_cache
-  endif
+  "if !empty(s:candidates_cache)
+    "return s:candidates_cache
+  "endif
 
-  if option.q != ''
-    call s:info('now searching ' . option.q .  ' ...')
-    let list = s:search(option.q)
-  elseif option.recent 
-    call s:info('now caching recent list ...')
-    let list = s:recent()
-  else
-    call s:info('now caching page list ...')
-    let list = s:get_page_list()
-  endif
+  "if option.q != ''
+    "call s:info('now searching ' . option.q .  ' ...')
+    "let list = s:search(option.q)
+  "elseif option.recent 
+    "call s:info('now caching recent list ...')
+    "let list = s:recent()
+  "else
+    "call s:info('now caching page list ...')
+    "let list = s:get_page_list()
+  "endif
 
-  let s:candidates_cache = 
-        \ map(list , '{
-        \ "word"              : v:val.word,
-        \ "abbr"              : v:val.abbr,
-        \ "source"            : "hiki",
-        \ "source__link"      : v:val.link,
-        \ "source__is_exists" : 1 ,
-        \ }')
-  return s:candidates_cache
+  "let s:candidates_cache = 
+        "\ map(list , '{
+        "\ "word"              : v:val.word,
+        "\ "abbr"              : v:val.abbr,
+        "\ "source"            : "hiki",
+        "\ "source__link"      : v:val.link,
+        "\ "source__is_exists" : 1 ,
+        "\ }')
+  "return s:candidates_cache
 
-endfunction
+"endfunction
 " 
 " action - open
 "
@@ -194,7 +212,7 @@ function! s:get_page_list()
       call add(list , source)
     endif
   endfor
-  return list
+  return s:to_candidates(list)
 endfunction
 
 
@@ -308,8 +326,6 @@ function! s:load_page(candidate, ... )
   let b:unite_hiki_candidate = a:candidate
   " clear undo
   call s:clear_undo() | setlocal nomodified | redraw | call s:info('')
-  " clear cache
-  let s:candidates_cache  = []
 endfunction
 "
 " update_contents
@@ -415,7 +431,7 @@ function! s:recent()
       call add(list , source)
     endif
   endfor
-  return list
+  return s:to_candidates(list)
 endfunction
 "
 " autocmd
