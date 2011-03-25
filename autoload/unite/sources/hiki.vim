@@ -27,6 +27,9 @@
 "   let g:unite_hiki_user     = 'user'
 "   let g:unite_hiki_password = 'password'
 "   let g:unite_hiki_server   = 'http://hiki.server'
+"
+"
+highlight unite_hiki_ok guifg=white guibg=blue
 " 
 " source
 "
@@ -72,31 +75,23 @@ let s:unite_source_hiki_recent = {
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
-" cache
-let s:candidates_cache  = []
-
 function! s:unite_source_hiki_list.gather_candidates(args, context)
   return s:get_page_list()
 endfunction
 
 function! s:unite_source_hiki_list.change_candidates(args, context)
-
-  let candidates = deepcopy(a:context.source.unite__cached_candidates)
-
-  if a:context.input != ''
-    let input   = substitute(a:context.input, '\*', '', 'g')
-    call add(candidates , {
-          \ 'word'              : input  ,
-          \ 'abbr'              : '[new page] ' . input ,
-          \ 'source'            : 'hiki' ,
-          \ 'source__link'      : unite#hiki#http#escape(input) ,
-          \ 'source__is_exists' : 0
-          \ })
+  if a:context.input == ''
+    return []
   endif
-
-  return candidates
+  let input = substitute(a:context.input, '\*', '', 'g')
+  return [{
+        \ 'word'              : input  ,
+        \ 'abbr'              : '[new page] ' . input ,
+        \ 'source'            : 'hiki' ,
+        \ 'source__link'      : unite#hiki#http#escape(input) ,
+        \ 'source__is_exists' : 0
+        \ }]
 endfunction
-
 
 function! s:unite_source_hiki_search.gather_candidates(args, context)
   if len(a:args) == 0
@@ -117,7 +112,6 @@ function! s:unite_source_hiki_recent.gather_candidates(args, context)
 endfunction
 
 function! s:to_candidates(list)
-    
   return map(a:list , '{
         \ "word"              : v:val.word,
         \ "abbr"              : v:val.abbr,
@@ -125,66 +119,8 @@ function! s:to_candidates(list)
         \ "source__link"      : v:val.link,
         \ "source__is_exists" : 1
         \ }')
-
 endfunction
 
-
-highlight unite_hiki_ok guifg=white guibg=blue
-
-
-" create list
-"function! s:unite_source.gather_candidates(args, context)
-   
-  "if !exists('g:unite_hiki_server')
-    "echoerr 'you need to define g:unite_hiki_server'
-  "endif
-  "" create new page
-  "if a:context.input != ''
-    "let coppied = copy(s:candidates_cache)
-    "let input   = substitute(a:context.input, '\*', '', 'g')
-    "call add(coppied , {
-          "\ 'word'              : input  ,
-          "\ 'abbr'              : '[new page] ' . input ,
-          "\ 'source'            : 'hiki' ,
-          "\ 'source__link'      : unite#hiki#http#escape(input) ,
-          "\ 'source__is_exists' : 0 ,
-          "\ })
-    "" モードを考えると悩ましい
-    "return coppied
-  "endif
-
-  "let option = s:parse_args(a:args)
-
-  "if option.exists_param
-    "let s:candidates_cache = []
-  "endif
-
-  "if !empty(s:candidates_cache)
-    "return s:candidates_cache
-  "endif
-
-  "if option.q != ''
-    "call s:info('now searching ' . option.q .  ' ...')
-    "let list = s:search(option.q)
-  "elseif option.recent 
-    "call s:info('now caching recent list ...')
-    "let list = s:recent()
-  "else
-    "call s:info('now caching page list ...')
-    "let list = s:get_page_list()
-  "endif
-
-  "let s:candidates_cache = 
-        "\ map(list , '{
-        "\ "word"              : v:val.word,
-        "\ "abbr"              : v:val.abbr,
-        "\ "source"            : "hiki",
-        "\ "source__link"      : v:val.link,
-        "\ "source__is_exists" : 1 ,
-        "\ }')
-  "return s:candidates_cache
-
-"endfunction
 " 
 " action - open
 "
@@ -250,7 +186,7 @@ endfunction
 "
 "
 function! s:load_page_with_page_name(page_name)
-  for candidate in s:candidates_cache
+  for candidate in s:get_page_list()
     if candidate.word == a:page_name
       call s:load_page(candidate)
       return
@@ -356,9 +292,6 @@ function! s:update_contents()
   endif
   " 削除の場合は閉じた上で候補の一覧から削除する
   if b:data.is_exists && b:data.contents == ''
-    call remove(s:candidates_cache ,
-            \ index(map(copy(s:candidates_cache) , "v:val.word") ,
-            \       b:data.word))
     " 表示されない
     call s:info(b:data.word . ' is deleted - ' . res.header[0])
     bd!
@@ -373,7 +306,6 @@ function! s:update_contents()
           \ 'source__link'      : unite#hiki#http#escape(b:data.word) ,
           \ 'source__is_exists' : 1 ,
           \ }
-    call insert(s:candidates_cache , source , 0)
     call s:load_page(source , {'force' : 1 , 'logined' : 1})
     call s:info(b:data.word . ' is created - ' . res.header[0])
     return
@@ -388,7 +320,7 @@ endfunction
 " return [{title , link , description} , ... ]
 "
 function! s:search(key)
-  let url = s:server_url() . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
+  let url   = s:server_url() . '/?c=search&key=' . http#escape(iconv(a:key , &enc , 'euc-jp'))
   let res   = s:get(url)
   let inner = s:HtmlUnescape(matchstr(res.content, '<ul>\zs.\{-}\ze</ul>'))
   let list  = []
@@ -528,29 +460,6 @@ function! s:clear_undo()
   execute "normal a \<BS>\<Esc>"
   let &l:undolevels = old_undolevels
   unlet old_undolevels
-endfunction
-"
-" parse args
-"
-function! s:parse_args(args)
-  let convert_def = {
-        \ '!'   : 'forcely'
-        \ }
-  let option = {
-    \ 'exists_param' : 0 ,
-    \ 'forcely'      : 0 , 
-    \ 'recent'       : 0 , 
-    \ 'q'            : ''
-    \ }
-  let exists_param = 0
-  for arg in a:args
-    let exists_param = 1
-    let v = split(arg , '=')
-    let v[0] = has_key(convert_def , v[0]) ? convert_def[v[0]] : v[0]
-    let option[v[0]] = len(v) == 1 ? 1 : v[1]
-  endfor
-  let option.exists_param = exists_param
-  return option
 endfunction
 "
 " echo info log
