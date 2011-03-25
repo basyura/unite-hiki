@@ -49,7 +49,10 @@ endfunction
 "      \ }')
 "endfunction
 "
-let s:action_table = {}
+let s:action_table = {'open' : {'description' : 'open page'}}
+function! s:action_table.open.func(candidate)
+  call s:load_page(a:candidate)
+endfunction
 
 let s:source_list = {
       \ 'name'           : 'hiki/list' ,
@@ -112,13 +115,6 @@ function! s:to_candidates(list)
         \ }')
 endfunction
 
-" 
-" action - open
-"
-let s:action_table.open = {'description' : 'open page'}
-function! s:action_table.open.func(candidate)
-  call s:load_page(a:candidate)
-endfunction
 "
 " get_page_list
 "
