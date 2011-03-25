@@ -50,27 +50,24 @@ endfunction
 "endfunction
 "
 let s:action_table = {}
-"
-let s:unite_source = {
-      \ 'name'           : 'hiki',  
-      \ 'default_action' : {'common' : 'open'},
-      \ 'action_table'   : {'common' : s:action_table}
-      \ }
 
 let s:unite_source_hiki_list = {
       \ 'name'           : 'hiki/list' ,
+      \ 'description'    : 'candidates from hiki page list' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
 let s:unite_source_hiki_search = {
       \ 'name'           : 'hiki/search' ,
+      \ 'description'    : 'candidates from hiki search page list' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
 let s:unite_source_hiki_recent = {
       \ 'name'           : 'hiki/recent' ,
+      \ 'description'    : 'candidates from hiki recent page list' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
