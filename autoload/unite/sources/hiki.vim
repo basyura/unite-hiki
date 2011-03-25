@@ -35,9 +35,9 @@ highlight unite_hiki_ok guifg=white guibg=blue
 "
 function! unite#sources#hiki#define()
   return [
-        \ s:unite_source_hiki_list   , 
-        \ s:unite_source_hiki_search ,
-        \ s:unite_source_hiki_recent ,
+        \ s:source_list   , 
+        \ s:source_search ,
+        \ s:source_recent ,
         \ ]
 endfunction
 
@@ -51,32 +51,32 @@ endfunction
 "
 let s:action_table = {}
 
-let s:unite_source_hiki_list = {
+let s:source_list = {
       \ 'name'           : 'hiki/list' ,
       \ 'description'    : 'candidates from hiki page list' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
-let s:unite_source_hiki_search = {
+let s:source_search = {
       \ 'name'           : 'hiki/search' ,
       \ 'description'    : 'candidates from hiki search page list' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
-let s:unite_source_hiki_recent = {
+let s:source_recent = {
       \ 'name'           : 'hiki/recent' ,
       \ 'description'    : 'candidates from hiki recent page list' ,
       \ 'default_action' : {'common' : 'open'} ,
       \ 'action_table'   : {'common' : s:action_table}
       \ }
 
-function! s:unite_source_hiki_list.gather_candidates(args, context)
+function! s:source_list.gather_candidates(args, context)
   return s:get_page_list()
 endfunction
 
-function! s:unite_source_hiki_list.change_candidates(args, context)
+function! s:source_list.change_candidates(args, context)
   if a:context.input == ''
     return []
   endif
@@ -90,7 +90,7 @@ function! s:unite_source_hiki_list.change_candidates(args, context)
         \ }]
 endfunction
 
-function! s:unite_source_hiki_search.gather_candidates(args, context)
+function! s:source_search.gather_candidates(args, context)
   if len(a:args) == 0
     call s:error('need keyword : Unite hiki/search:keyword')
     return []
@@ -104,7 +104,7 @@ function! s:unite_source_hiki_search.gather_candidates(args, context)
   return s:to_candidates(s:search(keyword))
 endfunction
 
-function! s:unite_source_hiki_recent.gather_candidates(args, context)
+function! s:source_recent.gather_candidates(args, context)
   return s:recent()
 endfunction
 
