@@ -95,13 +95,7 @@ function! s:source_search.gather_candidates(args, context)
     call s:error('need keyword : Unite hiki/search:keyword')
     return []
   end
-
-  let keyword = ''
-  for arg in a:args
-    let keyword .= arg . ' '
-  endfor
-
-  return s:to_candidates(s:search(keyword))
+  return s:to_candidates(s:search(join(a:args , ' ')))
 endfunction
 
 function! s:source_recent.gather_candidates(args, context)
