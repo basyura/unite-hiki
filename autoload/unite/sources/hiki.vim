@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 25 Mar 2011
+" Last Modified: 01 Apr 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -87,7 +87,6 @@ function! s:source_list.change_candidates(args, context)
   return [{
         \ 'word'              : input  ,
         \ 'abbr'              : '[new page] ' . input ,
-        \ 'source'            : 'hiki' ,
         \ 'source__link'      : unite#hiki#http#escape(input) ,
         \ 'source__is_exists' : 0
         \ }]
@@ -98,18 +97,18 @@ function! s:source_search.gather_candidates(args, context)
     call s:error('need keyword : Unite hiki/search:keyword')
     return []
   end
-  return s:to_candidates(s:search(join(a:args , ' ')))
+  return s:to_candidates(s:search(join(a:args , ' ')) , 'hiki/search')
 endfunction
 
 function! s:source_recent.gather_candidates(args, context)
   return s:recent()
 endfunction
 
-function! s:to_candidates(list)
+function! s:to_candidates(list, source_name)
   return map(a:list , '{
         \ "word"              : v:val.word,
         \ "abbr"              : v:val.abbr,
-        \ "source"            : "hiki",
+        \ "source"            : a:source_name,
         \ "source__link"      : v:val.link,
         \ "source__is_exists" : 1
         \ }')
@@ -135,7 +134,7 @@ function! s:get_page_list()
       call add(list , source)
     endif
   endfor
-  return s:to_candidates(list)
+  return s:to_candidates(list , 'hiki/list')
 endfunction
 
 
@@ -350,7 +349,7 @@ function! s:recent()
       call add(list , source)
     endif
   endfor
-  return s:to_candidates(list)
+  return s:to_candidates(list , 'hiki/recent')
 endfunction
 "
 " autocmd
