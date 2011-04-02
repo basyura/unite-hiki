@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 25 Mar 2011
+" Last Modified: 03 Apr 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -109,7 +109,6 @@ function! s:to_candidates(list)
   return map(a:list , '{
         \ "word"              : v:val.word,
         \ "abbr"              : v:val.abbr,
-        \ "source"            : "hiki",
         \ "source__link"      : v:val.link,
         \ "source__is_exists" : 1
         \ }')
