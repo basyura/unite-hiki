@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 03 Apr 2011
+" Last Modified: 13 Jul 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -87,7 +87,7 @@ function! s:source_list.change_candidates(args, context)
   return [{
         \ 'word'              : input  ,
         \ 'abbr'              : '[new page] ' . input ,
-        \ 'source'            : 'hiki' ,
+        \ 'source'            : 'hiki/list' ,
         \ 'source__link'      : unite#hiki#http#escape(input) ,
         \ 'source__is_exists' : 0
         \ }]
@@ -288,7 +288,7 @@ function! s:update_contents()
     let source = {
           \ 'word'              : b:data.word ,
           \ 'abbr'              : b:data.word ,
-          \ 'source'            : 'hiki' ,
+          \ 'source'            : 'hiki/list' ,
           \ 'source__link'      : unite#hiki#http#escape(b:data.word) ,
           \ 'source__is_exists' : 1 ,
           \ }
