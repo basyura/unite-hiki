@@ -1,5 +1,5 @@
 " Version:     0.0.1
-" Last Modified: 13 Jul 2011
+" Last Modified: 16 Jul 2011
 " Author:      basyura <basyrua at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -219,7 +219,7 @@ function! s:load_page(candidate, ... )
   let contents   = s:HtmlUnescape(matchstr(res.content, '<textarea.\{-}name="contents"[^>]*>\zs.\{-}\ze</textarea>'))
   let keyword    = s:HtmlUnescape(matchstr(res.content, '<textarea.\{-}name="keyword"[^>]*>\zs.\{-}\ze</textarea>'))
 
-  exec 'edit! ' . substitute(bufname , ' ' , '\\ ' , 'g')
+  execute 'edit! ' . '`=bufname`'
   silent %delete _
   setlocal bufhidden=hide
   setlocal noswapfile
