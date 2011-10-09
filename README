@@ -28,19 +28,14 @@ variables
 
 usage
 
-  :Unite hiki
+  :Unite hiki/list
     ページ一覧を表示。
     選択すると該当ページの内容を表示
 
-  :Unite hiki:q=XXX
+  :Unite hiki/search:XXX
     XXX を含むページを検索して一覧を表示
     選択すると該当ページの内容を表示
 
-  :Unite hiki:recent
+  :Unite hiki/recent
     最近更新したページの一覧を表示
     選択すると該当ページの内容を表示
-
-  :Unite hiki:!
-    キャッシュをクリアしてページ一覧を取りなおす。
-    (キャッシュをクリアする以外は :Unite hiki と同じ)
-
